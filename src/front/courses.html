@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Courses</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="adminBox" class="card" style="display:none">
+    <h3>Create Course</h3>
+    <input id="code" placeholder="Code">
+    <input id="title" placeholder="Title">
+    <textarea id="description" placeholder="Description"></textarea>
+    <select id="faculty_id"></select>
+    <button id="createCourse">Create</button>
+  </div>
+  <div id="courseList"></div>
+</div>
+<script src="app.js"></script>
+<script>
+let currentUser;
+async function loadFaculty() {
+  const r = await api('faculty_list.php');
+  faculty_id.innerHTML = r.data.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+}
+async function loadCourses() {
+  const r = await api('courses_list.php');
+  const enrolled = r.data.enrolled_ids || [];
+  courseList.innerHTML = r.data.courses.map(c => {
+    let actions = `<a href="course.html?course_id=${c.id}">Open</a>`;
+    if (currentUser.role === 'student') {
+      actions += enrolled.includes(c.id) ? `<button onclick="unenroll(${c.id})">Unenroll</button>` : `<button onclick="enroll(${c.id})">Enroll</button>`;
+    }
+    if (currentUser.role === 'admin') {
+      actions += `<button onclick="editCourse(${c.id},'${c.code}','${c.title}','${(c.description||'').replaceAll("'",' ')}',${c.faculty_id})">Edit</button><button onclick="deleteCourse(${c.id})">Delete</button>`;
+    }
+    return `<div class="card"><b>${c.code}</b> ${c.title}<div>${c.description||''}</div><div>Faculty: ${c.faculty_name}</div>${actions}</div>`;
+  }).join('');
+}
+window.enroll = async (id) => { await api('courses_enroll.php','POST',{course_id:id}); loadCourses(); };
+window.unenroll = async (id) => { await api('courses_unenroll.php','POST',{course_id:id}); loadCourses(); };
+window.deleteCourse = async (id) => { await api('courses_delete.php','POST',{id}); loadCourses(); };
+window.editCourse = async (id, c, t, d, f) => {
+  const code2 = prompt('Code', c);
+  const title2 = prompt('Title', t);
+  const desc2 = prompt('Description', d);
+  const fac2 = prompt('Faculty ID', f);
+  await api('courses_update.php','POST',{id,code:code2,title:title2,description:desc2,faculty_id:fac2});
+  loadCourses();
+};
+(async () => {
+  currentUser = await initPage('Courses & Enrollment');
+  if (currentUser.role === 'admin') {
+    adminBox.style.display = 'block';
+    await loadFaculty();
+    createCourse.onclick = async () => {
+      await api('courses_create.php','POST',{code:code.value,title:title.value,description:description.value,faculty_id:faculty_id.value});
+      loadCourses();
+    };
+  }
+  loadCourses();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container auth-wrap" id="app">
+  <h1 class="auth-title">Create Account</h1>
+  <div class="card">
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <select id="role">
+      <option value="student">Student</option>
+      <option value="faculty">Faculty</option>
+    </select>
+    <button id="btnRegister">Register</button>
+    <a class="center-link" href="login.html">Back to login</a>
+  </div>
+  <pre id="msg"></pre>
+</div>
+<script src="app.js"></script>
+<script>
+document.getElementById('btnRegister').onclick = async () => {
+  const r = await api('auth_register.php','POST',{
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    role: document.getElementById('role').value
+  });
+  document.getElementById('msg').textContent = JSON.stringify(r,null,2);
+};
+</script>
+</body>
+</html>

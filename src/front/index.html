@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="content"></div>
+</div>
+<script src="app.js"></script>
+<script>
+(async () => {
+  const user = await initPage('LMS Dashboard');
+  if (!user) return;
+  const content = document.getElementById('content');
+  let html = '<div class="card">Use the links above to access all modules.</div>';
+  if (user.role === 'admin') {
+    html += '<div class="card"><h3>Admin Users</h3><div id="users"></div></div><div class="card"><h3>Add User</h3><input id="u_name" placeholder="Name"><input id="u_email" placeholder="Email"><input id="u_pass" placeholder="Password"><select id="u_role"><option value="student">student</option><option value="faculty">faculty</option><option value="admin">admin</option></select><button id="addUser">Add</button></div>';
+  }
+  content.innerHTML = html;
+  if (user.role === 'admin') {
+    async function loadUsers() {
+      const r = await api('admin_users_list.php');
+      document.getElementById('users').innerHTML = r.data.map(u => `<div class="card">${u.id} ${u.name} ${u.email} ${u.role} active:${u.active}<div class="row"><button onclick="setRole(${u.id},'student')">Student</button><button onclick="setRole(${u.id},'faculty')">Faculty</button><button onclick="setRole(${u.id},'admin')">Admin</button></div><div class="row"><button onclick="setActive(${u.id},1)">Activate</button><button onclick="setActive(${u.id},0)">Deactivate</button><button onclick="delUser(${u.id})">Delete</button></div></div>`).join('');
+    }
+    window.setRole = async (id, role) => { await api('admin_users_set_role.php','POST',{id,role}); loadUsers(); };
+    window.setActive = async (id, active) => { await api('admin_users_set_active.php','POST',{id,active}); loadUsers(); };
+    window.delUser = async (id) => { await api('admin_users_delete.php','POST',{id}); loadUsers(); };
+    document.getElementById('addUser').onclick = async () => {
+      await api('admin_users_add.php','POST',{name:u_name.value,email:u_email.value,password:u_pass.value,role:u_role.value});
+      loadUsers();
+    };
+    loadUsers();
+  }
+})();
+</script>
+</body>
+</html>

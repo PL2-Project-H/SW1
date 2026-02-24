@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="courseInfo"></div>
+  <div class="grid">
+    <div class="card">
+      <h3>Roster</h3>
+      <div id="roster"></div>
+    </div>
+    <div class="card">
+      <h3>Announcements</h3>
+      <div id="announcements"></div>
+      <div id="announceForm" style="display:none">
+        <input id="a_title" placeholder="Title">
+        <textarea id="a_body" placeholder="Body"></textarea>
+        <button id="postAnnouncement">Post</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Calendar Events</h3>
+      <div id="events"></div>
+      <div id="eventForm" style="display:none">
+        <input id="e_title" placeholder="Title">
+        <input id="e_starts" type="datetime-local">
+        <input id="e_location" placeholder="Location or link">
+        <textarea id="e_desc" placeholder="Description"></textarea>
+        <button id="createEvent">Create Event</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Assessments</h3>
+      <div id="assessments"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+const courseId = new URLSearchParams(location.search).get('course_id');
+let user;
+async function load() {
+  const r = await api('course_dashboard.php?course_id=' + courseId);
+  const d = r.data;
+  courseInfo.innerHTML = `<h2>${d.course.code} ${d.course.title}</h2><div>${d.course.description||''}</div><div>Faculty: ${d.course.faculty_name}</div>`;
+  roster.innerHTML = d.roster.map(s => `<div>${s.name} (${s.email})</div>`).join('');
+  announcements.innerHTML = d.announcements.map(a => `<div class="card"><b>${a.title}</b><div>${a.body}</div><div class="small">${a.name} ${a.created_at}</div></div>`).join('');
+  events.innerHTML = d.events.map(e => `<div class="card"><b>${e.title}</b><div>${e.starts_at}</div><div>${e.location||''}</div><div>${e.description||''}</div></div>`).join('');
+  assessments.innerHTML = d.assessments.map(a => `<div class="card">${a.title} (${a.open_at} - ${a.close_at}) <a href="take_assessment.html?assessment_id=${a.id}">Open</a></div>`).join('');
+}
+(async () => {
+  user = await initPage('Course Dashboard');
+  if (user.role === 'admin' || user.role === 'faculty') {
+    announceForm.style.display = 'block';
+    eventForm.style.display = 'block';
+  }
+  postAnnouncement.onclick = async () => {
+    await api('announcements_post.php','POST',{course_id:courseId,title:a_title.value,body:a_body.value});
+    load();
+  };
+  createEvent.onclick = async () => {
+    await api('events_create.php','POST',{course_id:courseId,title:e_title.value,starts_at:e_starts.value.replace('T',' ')+':00',location:e_location.value,description:e_desc.value});
+    load();
+  };
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade Assessment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <input id="assessment_id" placeholder="Assessment ID">
+  <button id="loadSubmissions">Load Submissions</button>
+  <div id="subs"></div>
+  <div id="details"></div>
+  <pre id="msg"></pre>
+</div>
+<script src="app.js"></script>
+<script>
+const qid = new URLSearchParams(location.search).get('assessment_id');
+if (qid) assessment_id.value = qid;
+async function loadSub() {
+  const r = await api('assessments_submissions.php?assessment_id=' + assessment_id.value);
+  subs.innerHTML = r.data.map(s => `<div class="card">Submission ${s.id} by ${s.student_name} score:${s.score} status:${s.status}<button onclick="openSub(${s.id})">Open</button></div>`).join('');
+}
+window.openSub = async (id) => {
+  const r = await api('assessments_submission_detail.php?submission_id=' + id);
+  const shorts = r.data.answers.filter(a => a.type === 'short');
+  details.innerHTML = `<h3>Submission ${id}</h3>` + r.data.answers.map(a => `<div class="card">${a.prompt}<div>Answer: ${a.answer_text}</div><div>Awarded: ${a.awarded_points}</div>${a.type==='short' ? `<input id="p_${a.id}" value="${a.awarded_points}">` : ''}</div>`).join('') + `<button onclick="saveGrade(${id})">Save Grade</button>`;
+};
+window.saveGrade = async (id) => {
+  const r = await api('assessments_submission_detail.php?submission_id=' + id);
+  const grades = {};
+  r.data.answers.filter(a => a.type === 'short').forEach(a => { grades[a.id] = document.getElementById('p_' + a.id).value; });
+  const g = await api('assessments_grade.php','POST',{submission_id:id,grades});
+  msg.textContent = JSON.stringify(g,null,2);
+  loadSub();
+};
+loadSubmissions.onclick = loadSub;
+(async () => {
+  await initPage('Grade Assessments');
+  if (assessment_id.value) loadSub();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div class="card" id="courseSelectBox" style="display:none">
+    <select id="course_id"></select>
+    <button id="loadCourseEvents">Load Course Events</button>
+  </div>
+  <div id="events"></div>
+</div>
+<script src="app.js"></script>
+<script>
+async function renderEvents(list) {
+  events.innerHTML = list.map(e => `<div class="card"><b>${e.title}</b><div>${e.starts_at}</div><div>${e.location||''}</div><div>${e.description||''}</div><div>${e.course_title||''}</div></div>`).join('');
+}
+(async () => {
+  const user = await initPage('Course Calendar');
+  if (user.role === 'student') {
+    const r = await api('events_upcoming.php');
+    renderEvents(r.data);
+  } else {
+    courseSelectBox.style.display = 'block';
+    const cr = await api('courses_list.php');
+    course_id.innerHTML = cr.data.courses.map(c => `<option value="${c.id}">${c.code} ${c.title}</option>`).join('');
+    loadCourseEvents.onclick = async () => {
+      const r = await api('events_by_course.php?course_id=' + course_id.value);
+      renderEvents(r.data);
+    };
+    loadCourseEvents.click();
+  }
+})();
+</script>
+</body>
+</html>

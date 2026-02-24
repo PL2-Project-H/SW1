@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Take Assessment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="assessment"></div>
+  <form id="form"></form>
+  <button id="submitBtn">Submit Answers</button>
+  <pre id="msg"></pre>
+</div>
+<script src="app.js"></script>
+<script>
+const assessmentId = new URLSearchParams(location.search).get('assessment_id');
+let questions = [];
+(async () => {
+  const user = await initPage('Take Assessment');
+  const r = await api('assessments_detail.php?assessment_id=' + assessmentId);
+  assessment.innerHTML = `<h2>${r.data.assessment.title}</h2><div>${r.data.assessment.open_at} - ${r.data.assessment.close_at}</div>`;
+  questions = r.data.questions;
+  form.innerHTML = questions.map(q => {
+    if (q.type === 'mcq') {
+      return `<div class="card"><b>${q.prompt}</b>${q.choices.map(c => `<label><input type="radio" name="q_${q.id}" value="${c}">${c}</label>`).join('')}</div>`;
+    }
+    return `<div class="card"><b>${q.prompt}</b><textarea name="q_${q.id}"></textarea></div>`;
+  }).join('');
+  if (user.role !== 'student') {
+    submitBtn.style.display = 'none';
+  }
+})();
+submitBtn.onclick = async () => {
+  const answers = {};
+  questions.forEach(q => {
+    if (q.type === 'mcq') {
+      const el = document.querySelector(`input[name=q_${q.id}]:checked`);
+      answers[q.id] = el ? el.value : '';
+    } else {
+      answers[q.id] = form.querySelector(`textarea[name=q_${q.id}]`).value;
+    }
+  });
+  const r = await api('assessments_submit.php','POST',{assessment_id:assessmentId,answers});
+  msg.textContent = JSON.stringify(r,null,2);
+};
+</script>
+</body>
+</html>

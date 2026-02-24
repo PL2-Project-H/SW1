@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluation Questions Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div class="card">
+    <h3>Add Question</h3>
+    <input id="text" placeholder="Question text">
+    <select id="active"><option value="1">Active</option><option value="0">Inactive</option></select>
+    <button id="add">Add</button>
+  </div>
+  <div id="list"></div>
+</div>
+<script src="app.js"></script>
+<script>
+async function load() {
+  const r = await api('eval_questions_list.php');
+  list.innerHTML = r.data.map(q => `<div class="card">${q.id}. ${q.text} active:${q.active}<div class="row"><button onclick="editQ(${q.id},'${q.text.replaceAll("'",' ') }',${q.active})">Edit</button><button onclick="delQ(${q.id})">Delete</button></div></div>`).join('');
+}
+window.editQ = async (id, t, a) => {
+  const text2 = prompt('Text', t);
+  const active2 = prompt('Active 1 or 0', a);
+  await api('eval_questions_update.php','POST',{id,text:text2,active:active2});
+  load();
+};
+window.delQ = async (id) => {
+  await api('eval_questions_delete.php','POST',{id});
+  load();
+};
+add.onclick = async () => {
+  await api('eval_questions_add.php','POST',{text:text.value,active:active.value});
+  load();
+};
+(async () => {
+  const user = await initPage('Evaluation Questions');
+  if (user.role !== 'admin') {
+    list.textContent = 'Only admin';
+    return;
+  }
+  load();
+})();
+</script>
+</body>
+</html>

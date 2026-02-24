@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Reports</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="report"></div>
+</div>
+<script src="app.js"></script>
+<script>
+(async () => {
+  const user = await initPage('Course Performance Report');
+  if (user.role !== 'admin') {
+    report.textContent = 'Only admin';
+    return;
+  }
+  const r = await api('admin_report.php');
+  report.innerHTML = r.data.map(c => `<div class="card">${c.code} ${c.title}<div>Average: ${Number(c.avg_grade).toFixed(2)}</div><div>Pass Rate: ${Number(c.pass_rate).toFixed(2)}%</div></div>`).join('');
+})();
+</script>
+</body>
+</html>

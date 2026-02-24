@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessments</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="facultyBox" class="card" style="display:none">
+    <h3>Create Assessment</h3>
+    <input id="course_id" placeholder="Course ID">
+    <input id="title" placeholder="Title">
+    <input id="open_at" type="datetime-local">
+    <input id="close_at" type="datetime-local">
+    <input id="total_points" placeholder="Total Points" value="10">
+    <button id="createAssessment">Create</button>
+    <h3>Add Question</h3>
+    <input id="assessment_id" placeholder="Assessment ID">
+    <select id="type"><option value="mcq">mcq</option><option value="short">short</option></select>
+    <textarea id="prompt" placeholder="Prompt"></textarea>
+    <input id="choices" placeholder='Choices comma separated for mcq'>
+    <input id="correct_answer" placeholder="Correct answer for mcq">
+    <button id="addQuestion">Add Question</button>
+    <h3>Publish Assessment</h3>
+    <input id="pub_assessment_id" placeholder="Assessment ID">
+    <select id="is_published"><option value="1">Published</option><option value="0">Unpublished</option></select>
+    <button id="publishAssessment">Update Publish</button>
+  </div>
+  <div class="card">
+    <h3>Assessments</h3>
+    <div id="list"></div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+let user;
+async function load() {
+  let r;
+  if (user.role === 'student') {
+    r = await api('assessments_list_for_student.php');
+  } else {
+    const all = await api('courses_list.php');
+    const out = [];
+    for (const c of all.data.courses) {
+      const a = await api('assessments_list_by_course.php?course_id=' + c.id);
+      a.data.forEach(x => out.push({...x, course_title:c.title}));
+    }
+    r = { data: out };
+  }
+  list.innerHTML = r.data.map(a => `<div class="card">${a.title} ${a.course_title ? '('+a.course_title+')':''}<div>${a.open_at} - ${a.close_at}</div><a href="take_assessment.html?assessment_id=${a.id}">Open</a> ${user.role!=='student' ? `<a href="grade_assessment.html?assessment_id=${a.id}">Grade</a>` : ''}</div>`).join('');
+}
+(async () => {
+  user = await initPage('Assessments');
+  if (user.role === 'faculty' || user.role === 'admin') {
+    facultyBox.style.display = 'block';
+    createAssessment.onclick = async () => {
+      await api('assessments_create.php','POST',{course_id:course_id.value,title:title.value,open_at:open_at.value.replace('T',' ')+':00',close_at:close_at.value.replace('T',' ')+':00',total_points:total_points.value});
+      load();
+    };
+    addQuestion.onclick = async () => {
+      const payload = {assessment_id:assessment_id.value,type:type.value,prompt:prompt.value};
+      if (type.value === 'mcq') {
+        payload.choices = choices.value.split(',').map(s=>s.trim());
+        payload.correct_answer = correct_answer.value;
+      }
+      await api('assessments_add_question.php','POST',payload);
+      load();
+    };
+    publishAssessment.onclick = async () => {
+      await api('assessments_publish.php','POST',{assessment_id:pub_assessment_id.value,is_published:is_published.value});
+      load();
+    };
+  }
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Ratings</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="overall"></div>
+  <div class="grid">
+    <div class="card">
+      <h3>By Role</h3>
+      <div id="byRole"></div>
+    </div>
+    <div class="card">
+      <h3>Comments</h3>
+      <div id="comments"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+(async () => {
+  const user = await initPage('Faculty Ratings');
+  if (user.role !== 'faculty') {
+    overall.textContent = 'Only faculty';
+    return;
+  }
+  const r = await api('faculty_ratings.php');
+  overall.innerHTML = `<div class="card">Overall Average: ${Number(r.data.overall.avg_rating).toFixed(2)} from ${r.data.overall.total_answers} answers</div>`;
+  byRole.innerHTML = r.data.by_role.map(x => `<div>${x.evaluator_role}: ${Number(x.avg_rating).toFixed(2)} (${x.total_answers})</div>`).join('');
+  comments.innerHTML = r.data.comments.map(c => `<div class="card">${c.course_title} ${c.evaluator_role} ${c.evaluator_name}<div>${c.comment}</div></div>`).join('');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluate Teacher</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div class="card">
+    <h3>Select Target</h3>
+    <select id="target"></select>
+  </div>
+  <form id="form"></form>
+  <button id="submitEval">Submit Evaluation</button>
+  <pre id="msg"></pre>
+</div>
+<script src="app.js"></script>
+<script>
+let targets = [];
+let questions = [];
+async function loadData() {
+  const t = await api('eval_targets.php');
+  targets = t.data;
+  target.innerHTML = targets.map((x,i) => `<option value="${i}">${x.course_title} -> ${x.faculty_name}</option>`).join('');
+  const q = await api('eval_questions_list.php');
+  questions = q.data.filter(x => Number(x.active) === 1);
+  form.innerHTML = questions.map(q => `<div class="card"><b>${q.text}</b><select id="r_${q.id}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select><textarea id="c_${q.id}" placeholder="Optional comment"></textarea></div>`).join('');
+}
+submitEval.onclick = async () => {
+  const t = targets[target.value];
+  const answers = questions.map(q => ({question_id:q.id,rating:Number(document.getElementById('r_'+q.id).value),comment:document.getElementById('c_'+q.id).value}));
+  const r = await api('eval_submit.php','POST',{course_id:t.course_id,faculty_id:t.faculty_id,answers});
+  msg.textContent = JSON.stringify(r,null,2);
+};
+(async () => {
+  await initPage('Evaluate Teacher');
+  loadData();
+})();
+</script>
+</body>
+</html>

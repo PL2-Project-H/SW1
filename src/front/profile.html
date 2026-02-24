@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div class="grid">
+    <div class="card">
+      <h3>Update Profile</h3>
+      <input id="name" placeholder="Name">
+      <input id="email" placeholder="Email">
+      <button id="saveProfile">Save</button>
+    </div>
+    <div class="card">
+      <h3>Change Password</h3>
+      <input id="password" placeholder="New Password">
+      <button id="savePass">Change Password</button>
+    </div>
+  </div>
+  <pre id="msg"></pre>
+</div>
+<script src="app.js"></script>
+<script>
+(async () => {
+  await initPage('Profile');
+  const r = await api('profile_get.php');
+  name.value = r.data.name;
+  email.value = r.data.email;
+})();
+saveProfile.onclick = async () => {
+  const r = await api('profile_update.php','POST',{name:name.value,email:email.value});
+  msg.textContent = JSON.stringify(r,null,2);
+};
+savePass.onclick = async () => {
+  const r = await api('profile_change_password.php','POST',{password:password.value});
+  msg.textContent = JSON.stringify(r,null,2);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="list"></div>
+</div>
+<script src="app.js"></script>
+<script>
+async function load() {
+  const r = await api('notifications_list.php');
+  list.innerHTML = r.data.map(n => `<div class="card">${n.type}: ${n.text}<div class="small">${n.created_at}</div><button onclick="toggleRead(${n.id},${n.is_read ? 0 : 1})">Mark ${n.is_read ? 'Unread':'Read'}</button></div>`).join('');
+}
+window.toggleRead = async (id, is_read) => {
+  await api('notifications_mark.php','POST',{id,is_read});
+  load();
+};
+(async () => {
+  await initPage('Notifications');
+  load();
+})();
+</script>
+</body>
+</html>

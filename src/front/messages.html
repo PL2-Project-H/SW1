@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div class="grid">
+    <div class="card">
+      <h3>Send Message</h3>
+      <input id="course_id" placeholder="Course ID">
+      <input id="to_user_id" placeholder="To User ID">
+      <textarea id="body" placeholder="Message"></textarea>
+      <button id="send">Send</button>
+      <h3>Load Thread</h3>
+      <input id="t_course_id" placeholder="Course ID">
+      <input id="other_user_id" placeholder="Other User ID">
+      <button id="loadThread">Load</button>
+    </div>
+    <div class="card">
+      <h3>Inbox</h3>
+      <div id="inbox"></div>
+      <h3>Thread</h3>
+      <div id="thread"></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+async function loadInbox() {
+  const r = await api('messages_inbox.php');
+  inbox.innerHTML = r.data.map(m => `<div class="card">${m.course_title}: ${m.from_name} -> ${m.to_name}<div>${m.body}</div><div class="small">${m.created_at}</div></div>`).join('');
+}
+send.onclick = async () => {
+  await api('messages_send.php','POST',{course_id:course_id.value,to_user_id:to_user_id.value,body:body.value});
+  loadInbox();
+};
+loadThread.onclick = async () => {
+  const r = await api('messages_thread.php?course_id=' + t_course_id.value + '&other_user_id=' + other_user_id.value);
+  thread.innerHTML = r.data.map(m => `<div class="card">${m.from_name}: ${m.body}<div class="small">${m.created_at}</div></div>`).join('');
+};
+(async () => {
+  await initPage('Messages');
+  loadInbox();
+})();
+</script>
+</body>
+</html>

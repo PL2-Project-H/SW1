@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcript</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <div id="transcript"></div>
+</div>
+<script src="app.js"></script>
+<script>
+(async () => {
+  const user = await initPage('Transcript');
+  if (user.role !== 'student') {
+    transcript.textContent = 'Only students can view transcript';
+    return;
+  }
+  const r = await api('transcript_get.php');
+  transcript.innerHTML = r.data.map(c => `<div class="card"><h3>${c.code} ${c.title}</h3><div>Final Score: ${c.final_score}</div><div>${c.assessments.map(a => `${a.title}: ${a.score}/${a.total_points}`).join('<br>')}</div></div>`).join('');
+})();
+</script>
+</body>
+</html>

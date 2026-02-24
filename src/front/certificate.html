@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" id="app">
+  <input id="course_id" placeholder="Course ID">
+  <button id="load">Load Certificate</button>
+  <div id="cert"></div>
+</div>
+<script src="app.js"></script>
+<script>
+load.onclick = async () => {
+  const r = await api('certificate_get.php?course_id=' + course_id.value);
+  if (!r.ok) {
+    cert.innerHTML = r.error;
+    return;
+  }
+  cert.innerHTML = `<div class="card"><h2>Certificate</h2><div>Student: ${r.data.student_name}</div><div>Course: ${r.data.course_title}</div><div>Certificate No: ${r.data.certificate_no}</div><div>Issued At: ${r.data.issued_at}</div></div>`;
+};
+(async () => {
+  await initPage('Certificate');
+})();
+</script>
+</body>
+</html>
