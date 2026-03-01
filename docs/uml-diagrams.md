@@ -60,21 +60,21 @@ flowchart LR
 flowchart LR
     U[Users: Student/Faculty/Admin]
     FE[Frontend Pages + app.js]
-    API[PHP API Endpoints /src/api]
+    API["PHP API Endpoints (/src/api)"]
     C[Controllers]
     S[Services]
     R[Repositories]
     DB[(MySQL lms DB)]
 
     U -->|HTTP + Session Cookie| FE
-    FE -->|fetch /api/*.php JSON| API
-    API -->|body(), require_login(), require_role()| C
+    FE -->|"fetch /api/*.php JSON"| API
+    API -->|"body(), require_login(), require_role()"| C
     C -->|delegate business operations| S
     S -->|read/write queries| R
     R --> DB
     DB --> R
     R --> S
-    S -->|ok,data,error tuple| C
+    S -->|"ok, data, error tuple"| C
     C --> API
     API -->|json_response| FE
     FE --> U
@@ -95,7 +95,7 @@ flowchart TD
     G --> H[Student answers questions]
     H --> I[Submit via assessments_submit.php]
     I --> J{Current time within open_at/close_at?}
-    J -- No --> K[Return "Assessment window closed"]
+    J -- No --> K["Return: Assessment window closed"]
     J -- Yes --> L[Upsert submission]
     L --> M[Auto-grade MCQ answers]
     M --> N[Store submission_answers + score]
