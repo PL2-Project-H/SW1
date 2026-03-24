@@ -10,8 +10,8 @@ services:
     environment:
       DB_HOST: db
       DB_NAME: specialisthub
-      DB_USER: root
-      DB_PASS: secret
+      DB_USER: specialisthub
+      DB_PASS: specialisthub
 
   db:
     image: mysql:8.0
@@ -19,6 +19,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: specialisthub
+      MYSQL_USER: specialisthub
+      MYSQL_PASSWORD: specialisthub
     ports:
       - "3307:3306"
     volumes:

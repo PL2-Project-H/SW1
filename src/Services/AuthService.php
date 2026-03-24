@@ -41,6 +41,7 @@ class AuthService
             $this->users->createFreelancerProfile($userId, $data);
         }
 
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $userId;
         $_SESSION['role'] = $data['role'];
         $_SESSION['admin_role'] = $adminRole;
@@ -51,15 +52,17 @@ class AuthService
 
     public function login(string $email, string $password): array
     {
+        $this->clearAuthSession();
         $email = $this->normalizeEmail($email);
         $user = $this->users->findByEmail($email);
         if (!$user || !password_verify($password, $user['password_hash'])) {
             Response::error('Invalid credentials', 401);
         }
         if ($user['status'] === 'banned') {
-            session_destroy();
+            $this->clearAuthSession();
             Response::error('Account is banned', 403);
         }
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['role'] = $user['role'];
         $_SESSION['admin_role'] = $user['admin_role'] ?? null;
@@ -73,7 +76,7 @@ class AuthService
         if ($userId) {
             $this->audit->log((int) $userId, 'logout', 'user', (int) $userId);
         }
-        session_destroy();
+        $this->clearAuthSession();
     }
 
     public function me(): ?array
@@ -94,7 +97,7 @@ class AuthService
             Response::error('User not found', 404);
         }
         if ($user['status'] === 'banned') {
-            session_destroy();
+            $this->clearAuthSession();
             Response::error('Account is banned', 403);
         }
         if ($user['status'] === 'limited' && in_array($_SESSION['role'], ['client', 'freelancer'], true)) {
@@ -179,5 +182,10 @@ class AuthService
 
         $normalized = trim((string) $adminRole);
         return $normalized === '' ? null : $normalized;
+    }
+
+    private function clearAuthSession(): void
+    {
+        unset($_SESSION['user_id'], $_SESSION['role'], $_SESSION['admin_role']);
     }
 }

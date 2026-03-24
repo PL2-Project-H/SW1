@@ -10,10 +10,24 @@ class Database
     private function __construct()
     {
         $dsn = 'mysql:host=' . ($_ENV['DB_HOST'] ?? 'db') . ';dbname=' . ($_ENV['DB_NAME'] ?? 'specialisthub') . ';charset=utf8mb4';
-        $this->pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? 'secret', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
+        $attempts = 0;
+
+        while (true) {
+            try {
+                $this->pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? 'secret', [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                ]);
+                break;
+            } catch (PDOException $exception) {
+                $attempts++;
+                if ($attempts >= 10) {
+                    throw $exception;
+                }
+                usleep(500000);
+            }
+        }
+
         $this->ensureDefaultAdmin();
     }
 

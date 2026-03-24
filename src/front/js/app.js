@@ -26,23 +26,45 @@ async function apiCall(endpoint, method = 'GET', body = null, options = {}) {
 }
 
 async function loadSession(redirect = false) {
+  let user = null;
   try {
-    window.sessionUser = await apiCall('auth.php?action=me');
-    renderNav();
-    showNotifications();
-    return window.sessionUser;
+    user = await apiCall('auth.php?action=me');
   } catch (error) {
     if (redirect) {
       location.href = 'index.html';
     }
     return null;
   }
+
+  user = normalizeSessionUser(user);
+  if (!user) {
+    if (redirect) {
+      location.href = 'index.html';
+    }
+    return null;
+  }
+
+  window.sessionUser = user;
+
+  try {
+    renderNav();
+    showNotifications();
+  } catch (error) {
+    console.error('Session UI bootstrap failed', error);
+  }
+
+  return window.sessionUser;
 }
 
 async function checkSession(roles = []) {
   const user = await loadSession(true);
+  if (!user || typeof user.role !== 'string' || user.role === '') {
+    location.href = 'index.html';
+    return null;
+  }
   if (roles.length && !roles.includes(user.role)) {
     location.href = 'dashboard.html';
+    return null;
   }
   return user;
 }
@@ -84,9 +106,11 @@ function renderNav() {
     ]
   };
 
+  const roleLinks = links[role] ?? [['dashboard.html', 'Dashboard']];
+
   nav.innerHTML = `
     <div class="flex items-center gap-3 text-sm text-slate-700">
-      ${links[role].map(([href, label]) => `<a class="hover:text-slate-950" href="${href}">${label}</a>`).join('')}
+      ${roleLinks.map(([href, label]) => `<a class="hover:text-slate-950" href="${href}">${label}</a>`).join('')}
     </div>
     <div class="flex items-center gap-4">
       <span class="text-sm text-slate-600">${window.sessionUser.name}</span>
@@ -111,4 +135,21 @@ function debounce(fn, wait = 300) {
 
 function qs(id) {
   return document.getElementById(id);
+}
+
+function normalizeSessionUser(payload) {
+  const user = payload && typeof payload === 'object' && payload.user && typeof payload.user === 'object'
+    ? payload.user
+    : payload;
+
+  if (!user || typeof user !== 'object') {
+    return null;
+  }
+
+  if (typeof user.role !== 'string' || user.role.trim() === '') {
+    console.error('Session payload missing role', user);
+    return null;
+  }
+
+  return user;
 }
