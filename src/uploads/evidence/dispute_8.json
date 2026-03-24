@@ -1,0 +1,167 @@
+{
+    "dispute": {
+        "id": 8,
+        "contract_id": 5,
+        "filed_by": 27,
+        "reason": "Revision disagreement",
+        "status": "open",
+        "evidence_path": null,
+        "assigned_admin": null,
+        "verdict": null,
+        "client_pct": null,
+        "freelancer_pct": null,
+        "created_at": "2026-03-24 11:44:47"
+    },
+    "messages": [],
+    "deliverables": [
+        {
+            "id": 9,
+            "milestone_id": 9,
+            "file_path": "uploads\/deliverables\/26\/5e315f02a8241a12bb7f366270f7a1a1.pdf",
+            "submitted_at": "2026-03-24 11:44:46",
+            "revision_count": 1,
+            "free_revisions_allowed": 2,
+            "status": "revision_requested"
+        },
+        {
+            "id": 10,
+            "milestone_id": 9,
+            "file_path": "uploads\/deliverables\/26\/9dc6898ae36f7e07a2b48bdcc508fb48.pdf",
+            "submitted_at": "2026-03-24 11:44:47",
+            "revision_count": 0,
+            "free_revisions_allowed": 2,
+            "status": "approved"
+        }
+    ],
+    "amendments": [
+        {
+            "id": 5,
+            "contract_id": 5,
+            "proposed_by": 27,
+            "change_description": "Add dashboard summary export",
+            "status": "approved",
+            "created_at": "2026-03-24 11:44:46"
+        }
+    ],
+    "snapshots": [
+        {
+            "id": 13,
+            "milestone_id": 9,
+            "file_path": "uploads\/snapshots\/26\/d8310cb3808038b9dd9ad7644c361196.zip",
+            "captured_at": "2026-03-24 11:44:46"
+        },
+        {
+            "id": 14,
+            "milestone_id": 9,
+            "file_path": "uploads\/deliverables\/26\/5e315f02a8241a12bb7f366270f7a1a1.pdf",
+            "captured_at": "2026-03-24 11:44:46"
+        },
+        {
+            "id": 15,
+            "milestone_id": 9,
+            "file_path": "uploads\/deliverables\/26\/9dc6898ae36f7e07a2b48bdcc508fb48.pdf",
+            "captured_at": "2026-03-24 11:44:47"
+        }
+    ],
+    "audit_logs": [
+        {
+            "id": 88,
+            "user_id": 13,
+            "action": "escrow_lock",
+            "entity_type": "escrow_transaction",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"amount\": \"500.00\", \"milestone_id\": 3}",
+            "ip_address": "172.21.0.1",
+            "created_at": "2026-03-19 18:56:10"
+        },
+        {
+            "id": 158,
+            "user_id": 18,
+            "action": "milestone_started",
+            "entity_type": "milestone",
+            "entity_id": 5,
+            "old_value": "{\"status\": \"locked\"}",
+            "new_value": "{\"status\": \"in_progress\"}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:10"
+        },
+        {
+            "id": 159,
+            "user_id": 18,
+            "action": "qa_checklist_submitted",
+            "entity_type": "milestone",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"formats_match\": true, \"files_complete\": true, \"requirements_met\": true, \"no_placeholder_data\": true}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:10"
+        },
+        {
+            "id": 162,
+            "user_id": 18,
+            "action": "deliverable_submitted",
+            "entity_type": "deliverable",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"milestone_id\": 5}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:10"
+        },
+        {
+            "id": 165,
+            "user_id": 19,
+            "action": "revision_requested",
+            "entity_type": "deliverable",
+            "entity_id": 5,
+            "old_value": "{\"revision_count\": 0}",
+            "new_value": "{\"revision_count\": 1}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:10"
+        },
+        {
+            "id": 172,
+            "user_id": 19,
+            "action": "milestone_approved",
+            "entity_type": "milestone",
+            "entity_id": 5,
+            "old_value": "{\"status\": \"submitted\"}",
+            "new_value": "{\"status\": \"approved\"}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:11"
+        },
+        {
+            "id": 281,
+            "user_id": 27,
+            "action": "contract_created",
+            "entity_type": "contract",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"bid_id\": 14}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:44:45"
+        },
+        {
+            "id": 287,
+            "user_id": 27,
+            "action": "milestones_built",
+            "entity_type": "contract",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"count\": 2, \"contract_total\": \"1050.00\"}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:44:46"
+        },
+        {
+            "id": 306,
+            "user_id": 27,
+            "action": "cancellation_settlement",
+            "entity_type": "contract",
+            "entity_id": 5,
+            "old_value": null,
+            "new_value": "{\"client_share\": 550, \"freelancer_share\": 0}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:44:47"
+        }
+    ]
+}

@@ -1,38 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Register | SpecialistHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div class="container auth-wrap" id="app">
-  <h1 class="auth-title">Create Account</h1>
-  <div class="card">
-    <input id="name" placeholder="Name">
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <select id="role">
-      <option value="student">Student</option>
-      <option value="faculty">Faculty</option>
-    </select>
-    <button id="btnRegister">Register</button>
-    <a class="center-link" href="login.html">Back to login</a>
-  </div>
-  <pre id="msg"></pre>
-</div>
-<script src="app.js"></script>
-<script>
-document.getElementById('btnRegister').onclick = async () => {
-  const r = await api('auth_register.php','POST',{
-    name: document.getElementById('name').value,
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-    role: document.getElementById('role').value
-  });
-  document.getElementById('msg').textContent = JSON.stringify(r,null,2);
-};
-</script>
+  <main class="shell px-6 py-10">
+    <div class="glass mx-auto max-w-3xl rounded-[2rem] border p-8">
+      <h1 class="text-3xl font-semibold">Create SpecialistHub account</h1>
+      <form id="register-form" class="mt-8 grid gap-4 md:grid-cols-2">
+        <select name="role" id="role" class="rounded-2xl border px-4 py-3">
+          <option value="client">Client</option>
+          <option value="freelancer">Freelancer</option>
+          <option value="admin">Admin</option>
+        </select>
+        <input name="name" class="rounded-2xl border px-4 py-3" placeholder="Full legal name" required>
+        <input name="email" type="email" class="rounded-2xl border px-4 py-3" placeholder="Email" required>
+        <input name="password" type="password" class="rounded-2xl border px-4 py-3" placeholder="Password" required>
+        <input name="country" class="rounded-2xl border px-4 py-3" placeholder="Country" required>
+        <input name="timezone" class="rounded-2xl border px-4 py-3" placeholder="Timezone" value="UTC" required>
+        <input name="id_type" class="rounded-2xl border px-4 py-3" placeholder="ID Type">
+        <select name="admin_role" class="rounded-2xl border px-4 py-3">
+          <option value="">No admin role</option>
+          <option value="financial_admin">Financial Admin</option>
+          <option value="dispute_mediator">Dispute Mediator</option>
+          <option value="tech_support">Tech Support</option>
+        </select>
+        <div id="freelancer-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-2">
+          <select name="niche" class="rounded-2xl border px-4 py-3">
+            <option value="data_science">Data Science</option>
+            <option value="legal">Legal</option>
+            <option value="translation">Translation</option>
+            <option value="other">Other</option>
+          </select>
+          <input name="hourly_rate" class="rounded-2xl border px-4 py-3" placeholder="Hourly rate">
+        </div>
+        <button class="md:col-span-2 rounded-2xl bg-slate-950 px-4 py-3 text-white">Register</button>
+      </form>
+    </div>
+  </main>
+  <script src="js/app.js"></script>
+  <script>
+    const sessionBootstrap = loadSession(false).then((user) => {
+      if (user) {
+        location.href = 'dashboard.html';
+      }
+      return user;
+    });
+
+    document.getElementById('role').addEventListener('change', (event) => {
+      document.getElementById('freelancer-fields').classList.toggle('hidden', event.target.value !== 'freelancer');
+    });
+    document.getElementById('register-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await sessionBootstrap.catch(() => null);
+        const response = await apiCall('auth.php?action=register', 'POST', Object.fromEntries(new FormData(event.target).entries()));
+        window.sessionUser = response.user;
+        location.href = 'dashboard.html';
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  </script>
 </body>
 </html>

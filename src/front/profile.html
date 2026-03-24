@@ -1,44 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Profile | SpecialistHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div class="container" id="app">
-  <div class="grid">
-    <div class="card">
-      <h3>Update Profile</h3>
-      <input id="name" placeholder="Name">
-      <input id="email" placeholder="Email">
-      <button id="saveProfile">Save</button>
+  <div class="shell px-6 py-6">
+    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <form id="profile-form" class="glass rounded-3xl border p-6 space-y-4">
+        <h2 class="text-2xl font-semibold">Profile Editor</h2>
+        <textarea id="bio" name="bio" class="h-32 w-full rounded-2xl border px-4 py-3" placeholder="Bio"></textarea>
+        <select id="niche" name="niche" class="w-full rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
+        <input id="hourly_rate" name="hourly_rate" class="w-full rounded-2xl border px-4 py-3" placeholder="Hourly rate">
+        <input id="timezone" name="timezone" class="w-full rounded-2xl border px-4 py-3" placeholder="Timezone">
+        <input id="skills" name="skills" class="w-full rounded-2xl border px-4 py-3" placeholder="Comma separated skills">
+        <label class="flex gap-2 text-sm"><input id="digest_opt_in" type="checkbox" name="digest_opt_in" value="1" checked> Receive weekly digest recommendations</label>
+        <button class="rounded-2xl bg-slate-950 px-4 py-3 text-white">Save Profile</button>
+      </form>
+      <div class="space-y-6">
+        <form id="credential-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
+          <h2 class="text-xl font-semibold">Credential Upload</h2>
+          <select name="type" class="w-full rounded-2xl border px-4 py-3"><option value="certification">Certification</option><option value="license">License</option><option value="portfolio">Portfolio Proof</option></select>
+          <input type="file" name="file" class="w-full">
+          <button class="rounded-xl bg-sky-600 px-4 py-3 text-white">Upload Credential</button>
+        </form>
+        <form id="kyc-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
+          <h2 class="text-xl font-semibold">KYC / Identity Upload</h2>
+          <select name="account_type" class="w-full rounded-2xl border px-4 py-3"><option value="individual">Individual</option><option value="company">Company</option></select>
+          <select name="document_kind" class="w-full rounded-2xl border px-4 py-3"><option value="national_id">National ID</option><option value="passport">Passport</option><option value="company_registration">Company Registration</option></select>
+          <input type="file" name="file" class="w-full">
+          <button class="rounded-xl bg-violet-700 px-4 py-3 text-white">Submit KYC</button>
+        </form>
+        <form id="portfolio-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
+          <h2 class="text-xl font-semibold">Portfolio Upload</h2>
+          <input name="title" class="w-full rounded-2xl border px-4 py-3" placeholder="Portfolio title">
+          <select name="niche" class="w-full rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
+          <input name="dataset_description" class="w-full rounded-2xl border px-4 py-3" placeholder="Dataset description">
+          <input name="tools_used" class="w-full rounded-2xl border px-4 py-3" placeholder="Tools used">
+          <input name="case_type" class="w-full rounded-2xl border px-4 py-3" placeholder="Case type">
+          <input name="jurisdiction" class="w-full rounded-2xl border px-4 py-3" placeholder="Jurisdiction">
+          <input name="language_pair" class="w-full rounded-2xl border px-4 py-3" placeholder="Language pair">
+          <label class="flex gap-2"><input type="checkbox" name="is_public" value="1" checked> Public</label>
+          <label class="flex gap-2"><input type="checkbox" name="is_confidential" value="1"> Confidential</label>
+          <input type="file" name="file" class="w-full">
+          <button class="rounded-xl bg-emerald-600 px-4 py-3 text-white">Upload Portfolio Item</button>
+        </form>
+        <form id="availability-form" class="glass rounded-3xl border p-6 space-y-4">
+          <h2 class="text-xl font-semibold">Availability</h2>
+          <textarea id="availability_json" class="h-32 w-full rounded-2xl border px-4 py-3" placeholder='[{"day_of_week":1,"start_time_utc":"09:00:00","end_time_utc":"12:00:00"}]'></textarea>
+          <button class="rounded-xl bg-amber-500 px-4 py-3 text-white">Save Availability</button>
+        </form>
+      </div>
     </div>
-    <div class="card">
-      <h3>Change Password</h3>
-      <input id="password" placeholder="New Password">
-      <button id="savePass">Change Password</button>
+    <div class="mt-8 grid gap-6 lg:grid-cols-3">
+      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Portfolio</h3><div id="portfolio-list" class="space-y-3"></div></section>
+      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Credentials</h3><div id="credential-list" class="space-y-3"></div></section>
+      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Availability Grid</h3><div id="availability-list" class="space-y-3"></div></section>
     </div>
+    <section class="glass mt-8 rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">KYC Submission History</h3><div id="kyc-list" class="space-y-3"></div></section>
   </div>
-  <pre id="msg"></pre>
-</div>
-<script src="app.js"></script>
-<script>
-(async () => {
-  await initPage('Profile');
-  const r = await api('profile_get.php');
-  name.value = r.data.name;
-  email.value = r.data.email;
-})();
-saveProfile.onclick = async () => {
-  const r = await api('profile_update.php','POST',{name:name.value,email:email.value});
-  msg.textContent = JSON.stringify(r,null,2);
-};
-savePass.onclick = async () => {
-  const r = await api('profile_change_password.php','POST',{password:password.value});
-  msg.textContent = JSON.stringify(r,null,2);
-};
-</script>
+  <script src="js/app.js"></script>
+  <script src="js/profile.js"></script>
 </body>
 </html>

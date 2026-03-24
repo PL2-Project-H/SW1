@@ -1,24 +1,29 @@
 services:
   app:
-    build:
-      context: ./src
+    build: .
     ports:
-      - "8090:80"
+      - "8080:80"
     volumes:
       - ./src:/var/www/html
     depends_on:
       - db
+    environment:
+      DB_HOST: db
+      DB_NAME: specialisthub
+      DB_USER: root
+      DB_PASS: secret
+
   db:
     image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: lms
-      MYSQL_USER: lms
-      MYSQL_PASSWORD: lms
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: specialisthub
     ports:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./lms.sql:/docker-entrypoint-initdb.d/lms.sql
+      - ./src/Core/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
 volumes:
   db_data:

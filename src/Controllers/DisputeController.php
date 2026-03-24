@@ -1,0 +1,107 @@
+<?php
+
+class DisputeController extends BaseController
+{
+    private DisputeRepository $disputes;
+    private ContractRepository $contracts;
+    private DisputeService $service;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->disputes = new DisputeRepository();
+        $this->contracts = new ContractRepository();
+        $this->service = new DisputeService();
+    }
+
+    public function file(array $data): void
+    {
+        $userId = $this->requireAuth();
+        $id = $this->disputes->create([
+            'contract_id' => $data['contract_id'],
+            'filed_by' => $userId,
+            'reason' => $data['reason'],
+        ]);
+        $this->service->assembleEvidence($id);
+        $this->service->assignArbitrator($id);
+        Response::json(['id' => $id]);
+    }
+
+    public function mine(): void
+    {
+        $userId = $this->requireAuth();
+        Response::json($this->disputes->listMine($userId));
+    }
+
+    public function detail(int $id): void
+    {
+        $this->requireAuth();
+        $dispute = $this->disputes->get($id);
+        if (!$dispute) {
+            Response::error('Dispute not found', 404);
+        }
+        if ($dispute['evidence_path']) {
+            $path = dirname(__DIR__) . '/' . $dispute['evidence_path'];
+            $dispute['evidence'] = file_exists($path) ? json_decode(file_get_contents($path), true) : null;
+        }
+        Response::json($dispute);
+    }
+
+    public function safeRoomMessage(array $data): void
+    {
+        $userId = $this->requireAuth();
+        $dispute = $this->disputes->get((int) $data['dispute_id']);
+        if (!$dispute || !in_array($dispute['status'], ['open', 'in_mediation'], true)) {
+            Response::error('Safe-room is closed', 422);
+        }
+        $contract = $this->contracts->getContract((int) $dispute['contract_id']);
+        $allowed = [(int) $contract['client_id'], (int) $contract['freelancer_id'], (int) $dispute['assigned_admin']];
+        if (!in_array($userId, $allowed, true)) {
+            Response::error('Forbidden', 403);
+        }
+        $id = $this->disputes->addMessage((int) $data['dispute_id'], $userId, $data['message']);
+        Response::json(['id' => $id]);
+    }
+
+    public function messages(int $disputeId): void
+    {
+        $userId = $this->requireAuth();
+        $dispute = $this->disputes->get($disputeId);
+        $contract = $this->contracts->getContract((int) $dispute['contract_id']);
+        $messages = $this->disputes->listMessages($disputeId);
+        if ($userId === (int) $dispute['assigned_admin']) {
+            Response::json($messages);
+        }
+        $filtered = array_values(array_filter($messages, fn ($msg) => (int) $msg['sender_id'] === $userId || (int) $msg['sender_id'] === (int) $dispute['assigned_admin']));
+        Response::json($filtered);
+    }
+
+    public function verdict(array $data): void
+    {
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('dispute/verdict');
+        $this->service->executeVerdict((int) $data['dispute_id'], (int) $data['client_pct'], (int) $data['freelancer_pct'], $data['verdict']);
+        Response::json(['message' => 'Verdict issued']);
+    }
+
+    public function appeal(array $data): void
+    {
+        $userId = $this->requireAuth();
+        $this->service->fileAppeal((int) $data['dispute_id'], $userId, $data['reason']);
+        Response::json(['message' => 'Appeal filed']);
+    }
+
+    public function arbitrators(): void
+    {
+        $this->requireAuth('admin');
+        Response::json($this->disputes->listArbitrators());
+    }
+
+    public function assign(array $data): void
+    {
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('dispute/assign');
+        $this->disputes->updateAssignment((int) $data['dispute_id'], (int) $data['admin_id'], 'in_mediation');
+        Response::json(['message' => 'Arbitrator assigned']);
+    }
+}

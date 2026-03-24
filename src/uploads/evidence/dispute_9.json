@@ -1,0 +1,134 @@
+{
+    "dispute": {
+        "id": 9,
+        "contract_id": 6,
+        "filed_by": 31,
+        "reason": "Revision disagreement",
+        "status": "open",
+        "evidence_path": null,
+        "assigned_admin": null,
+        "verdict": null,
+        "client_pct": null,
+        "freelancer_pct": null,
+        "created_at": "2026-03-24 12:01:44"
+    },
+    "messages": [],
+    "deliverables": [
+        {
+            "id": 11,
+            "milestone_id": 11,
+            "file_path": "uploads\/deliverables\/30\/d6d1b661328bc44a3b36f0ff66d64ac8.pdf",
+            "submitted_at": "2026-03-24 12:01:43",
+            "revision_count": 1,
+            "free_revisions_allowed": 2,
+            "status": "approved"
+        },
+        {
+            "id": 12,
+            "milestone_id": 11,
+            "file_path": "uploads\/deliverables\/30\/8073827db9137a99c12d591a39e034fb.pdf",
+            "submitted_at": "2026-03-24 12:01:43",
+            "revision_count": 0,
+            "free_revisions_allowed": 2,
+            "status": "pending"
+        }
+    ],
+    "amendments": [
+        {
+            "id": 6,
+            "contract_id": 6,
+            "proposed_by": 31,
+            "change_description": "Add dashboard summary export",
+            "status": "approved",
+            "created_at": "2026-03-24 12:01:43"
+        }
+    ],
+    "snapshots": [
+        {
+            "id": 16,
+            "milestone_id": 11,
+            "file_path": "uploads\/snapshots\/30\/36ee2a3ba41e6a12abe1f1f7f99b45ae.zip",
+            "captured_at": "2026-03-24 12:01:43"
+        },
+        {
+            "id": 17,
+            "milestone_id": 11,
+            "file_path": "uploads\/deliverables\/30\/d6d1b661328bc44a3b36f0ff66d64ac8.pdf",
+            "captured_at": "2026-03-24 12:01:43"
+        },
+        {
+            "id": 18,
+            "milestone_id": 11,
+            "file_path": "uploads\/deliverables\/30\/8073827db9137a99c12d591a39e034fb.pdf",
+            "captured_at": "2026-03-24 12:01:43"
+        }
+    ],
+    "audit_logs": [
+        {
+            "id": 95,
+            "user_id": 13,
+            "action": "escrow_partial_release",
+            "entity_type": "escrow_transaction",
+            "entity_id": 6,
+            "old_value": null,
+            "new_value": "{\"amount\": 250}",
+            "ip_address": "172.21.0.1",
+            "created_at": "2026-03-19 18:56:10"
+        },
+        {
+            "id": 104,
+            "user_id": 13,
+            "action": "escrow_cleared",
+            "entity_type": "escrow_transaction",
+            "entity_id": 6,
+            "old_value": "{\"status\": \"pending\"}",
+            "new_value": "{\"status\": \"cleared\"}",
+            "ip_address": "172.21.0.1",
+            "created_at": "2026-03-19 18:56:11"
+        },
+        {
+            "id": 169,
+            "user_id": 18,
+            "action": "deliverable_submitted",
+            "entity_type": "deliverable",
+            "entity_id": 6,
+            "old_value": null,
+            "new_value": "{\"milestone_id\": 5}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 11:28:11"
+        },
+        {
+            "id": 351,
+            "user_id": 31,
+            "action": "contract_created",
+            "entity_type": "contract",
+            "entity_id": 6,
+            "old_value": null,
+            "new_value": "{\"bid_id\": 17}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 12:01:42"
+        },
+        {
+            "id": 357,
+            "user_id": 31,
+            "action": "milestones_built",
+            "entity_type": "contract",
+            "entity_id": 6,
+            "old_value": null,
+            "new_value": "{\"count\": 2, \"contract_total\": \"1050.00\"}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 12:01:42"
+        },
+        {
+            "id": 376,
+            "user_id": 31,
+            "action": "cancellation_settlement",
+            "entity_type": "contract",
+            "entity_id": 6,
+            "old_value": null,
+            "new_value": "{\"client_share\": 550, \"freelancer_share\": 0}",
+            "ip_address": "172.18.0.1",
+            "created_at": "2026-03-24 12:01:44"
+        }
+    ]
+}

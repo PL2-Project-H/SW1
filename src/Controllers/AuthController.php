@@ -1,24 +1,30 @@
 <?php
-class AuthController {
-    private $service;
 
-    public function __construct() {
-        $this->service = new AuthService();
+class AuthController extends BaseController
+{
+    public function register(array $data): void
+    {
+        Response::json(['user' => $this->auth->register($data)]);
     }
 
-    public function register($in) {
-        return $this->service->register($in['name'] ?? '', $in['email'] ?? '', $in['password'] ?? '', $in['role'] ?? 'student');
+    public function login(array $data): void
+    {
+        Response::json(['user' => $this->auth->login($data['email'] ?? '', $data['password'] ?? '')]);
     }
 
-    public function login($in) {
-        return $this->service->login($in['email'] ?? '', $in['password'] ?? '');
+    public function logout(): void
+    {
+        $this->auth->logout();
+        Response::json(['message' => 'Logged out']);
     }
 
-    public function logout() {
-        return $this->service->logout();
-    }
-
-    public function me() {
-        return $this->service->me();
+    public function me(): void
+    {
+        $user = $this->auth->me();
+        if (!$user) {
+            Response::error('Unauthenticated', 401);
+        }
+        $user['notifications'] = $this->notifications->listForUser((int) $user['id']);
+        Response::json($user);
     }
 }
