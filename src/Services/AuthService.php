@@ -141,7 +141,7 @@ class AuthService
             'weekly-digest/send' => ['tech_support'],
             'roles' => ['tech_support'],
             'roles/assign' => ['tech_support'],
-            'credential/review' => ['tech_support', 'dispute_mediator'],
+            'credential/review' => ['tech_support', 'dispute_mediator', 'financial_admin'],
             'dispute/verdict' => ['dispute_mediator'],
             'dispute/assign' => ['dispute_mediator'],
             'escrow/*' => ['financial_admin'],

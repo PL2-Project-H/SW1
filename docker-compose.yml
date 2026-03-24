@@ -1,6 +1,10 @@
 services:
   app:
     build: .
+    command: >
+      sh -lc "mkdir -p /var/www/html/uploads &&
+              chmod -R 0777 /var/www/html/uploads &&
+              apache2-foreground"
     ports:
       - "8080:80"
     volumes:

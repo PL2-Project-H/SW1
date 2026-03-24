@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setUnavailable('credentials-table', 'This admin role cannot review credentials.');
   }
 
-  if (['tech_support', 'dispute_mediator'].includes(role)) {
+  if (['tech_support', 'dispute_mediator', 'financial_admin'].includes(role)) {
     await loadSection('kyc-table', 'admin.php?action=kyc/queue', (rows) =>
       rows.map((item) => `<div class="rounded-2xl border p-4 text-sm">${item.name} | ${item.document_kind} | ${item.account_type}
         <div class="mt-2 flex gap-2"><button onclick="reviewKyc(${item.id},'verified')" class="rounded bg-emerald-600 px-3 py-1 text-white">Verify</button><button onclick="reviewKyc(${item.id},'rejected')" class="rounded bg-rose-600 px-3 py-1 text-white">Reject</button></div>
