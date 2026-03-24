@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | SpecialistHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0d;
+      --paper: #f5f2ec;
+      --gold: #c9a84c;
+      --gold-light: #e8d5a3;
+      --muted: #6b6560;
+      --border: rgba(201,168,76,0.25);
+      --border-input: rgba(13,13,13,0.18);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .panel-left {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 50% at 40% 50%, rgba(201,168,76,0.15) 0%, transparent 70%),
+        linear-gradient(160deg, #1a1712 0%, #0d0d0d 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem;
+      min-height: 100vh;
+      animation: panelIn 0.7s ease both;
+    }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .panel-deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201,168,76,0.12);
+    }
+    .panel-deco-circle-1 { width: 400px; height: 400px; top: -120px; right: -120px; }
+    .panel-deco-circle-2 { width: 240px; height: 240px; bottom: 5%; left: -60px; }
+    .panel-deco-circle-3 { width: 120px; height: 120px; bottom: 30%; right: 10%; }
+
+    .panel-deco-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent);
+    }
+    .pdl-1 { width: 60%; top: 35%; left: 10%; }
+    .pdl-2 { width: 40%; bottom: 30%; right: 5%; }
+
+    .panel-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--paper);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      position: relative; z-index: 1;
+    }
+    .panel-logo span { color: var(--gold); }
+
+    .panel-body { position: relative; z-index: 1; }
+
+    .panel-tag {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .panel-tag::before {
+      content: '';
+      display: block;
+      width: 1.5rem; height: 1px;
+      background: var(--gold);
+    }
+
+    .panel-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--paper);
+      margin-bottom: 1.25rem;
+    }
+    .panel-headline em { font-style: italic; color: var(--gold); }
+
+    .panel-sub {
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(245,242,236,0.55);
+      max-width: 34ch;
+    }
+
+    .panel-footer {
+      position: relative; z-index: 1;
+      font-size: 0.75rem;
+      color: rgba(245,242,236,0.3);
+    }
+
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 4rem;
+      animation: formIn 0.7s 0.15s ease both;
+    }
+
+    @keyframes formIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-header { margin-bottom: 2.5rem; }
+
+    .form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--muted);
+    }
+
+    .form-subtitle a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .form-subtitle a:hover { text-decoration: underline; }
+
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2.25rem;
+      border: 1px solid var(--border-input);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      text-align: center;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .tab-btn.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .tab-btn:not(.active):hover {
+      background: rgba(13,13,13,0.06);
+      color: var(--ink);
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--ink);
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--border-input);
+      border-radius: 2px;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--gold);
+      background: rgba(255,255,255,0.9);
+    }
+
+    .form-input::placeholder { color: rgba(107,101,96,0.5); }
+
+    .submit-btn {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      border: none;
+      border-radius: 2px;
+      padding: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 0.5rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .submit-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+
+    .form-hint {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .form-hint a { color: var(--gold); text-decoration: none; font-weight: 500; }
+    .form-hint a:hover { text-decoration: underline; }
+
+    .admin-hint {
+      margin-top: 2rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: rgba(201,168,76,0.05);
+    }
+    .admin-hint-label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+    }
+    .admin-hint-text {
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+    }
+
+    .error-msg {
+      display: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      border-radius: 2px;
+      padding: 0.65rem 1rem;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+    .error-msg.show { display: block; }
+
+    @media (max-width: 768px) {
+      body { grid-template-columns: 1fr; }
+      .panel-left { min-height: 220px; padding: 2rem; }
+      .panel-body .panel-headline { font-size: 1.6rem; }
+      .panel-right { padding: 2.5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel-left">
+    <div class="panel-deco-circle panel-deco-circle-1"></div>
+    <div class="panel-deco-circle panel-deco-circle-2"></div>
+    <div class="panel-deco-circle panel-deco-circle-3"></div>
+    <div class="panel-deco-line pdl-1"></div>
+    <div class="panel-deco-line pdl-2"></div>
+
+    <a href="index.html" class="panel-logo">Specialist<span>Hub</span></a>
+
+    <div class="panel-body">
+      <p class="panel-tag">Welcome back</p>
+      <h2 class="panel-headline">
+        Your work,<br>
+        <em>secured</em><br>
+        and settled.
+      </h2>
+      <p class="panel-sub">
+        Milestone-protected contracts and escrow payments for specialized professional services.
+      </p>
+    </div>
+
+    <div class="panel-footer">© 2026 SpecialistHub</div>
+  </div>
+
+  <div class="panel-right">
+    <div class="form-header">
+      <h1 class="form-title">Sign in</h1>
+      <p class="form-subtitle">Don't have an account? <a href="register.html">Create one</a></p>
+    </div>
+
+    <div class="tab-bar">
+      <a href="login.html" class="tab-btn active">Log In</a>
+      <a href="register.html" class="tab-btn">Sign Up</a>
+    </div>
+
+    <div id="error-msg" class="error-msg"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input id="email" name="email" type="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" name="password" type="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="submit-btn">
+        Sign In
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+
+    <p class="form-hint">
+      New to the platform? <a href="register.html">Create a free account</a>
+    </p>
+
+    <div class="admin-hint">
+      <div class="admin-hint-label">Demo credentials</div>
+      <div class="admin-hint-text">admin@specialisthub.local / admin123</div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=20260324c"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const errorEl = document.getElementById('error-msg');
+      errorEl.classList.remove('show');
+      try {
+        const response = await apiCall('auth.php?action=login', 'POST', Object.fromEntries(new FormData(event.target).entries()));
+        window.sessionUser = response.user;
+        location.replace('dashboard.html');
+      } catch (error) {
+        errorEl.textContent = error.message || 'Login failed. Please check your credentials.';
+        errorEl.classList.add('show');
+      }
+    });
+  </script>
+</body>
+</html>

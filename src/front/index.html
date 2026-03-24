@@ -3,42 +3,584 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/app.css">
+  <title>SpecialistHub — Elite Freelance Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0d;
+      --paper: #f5f2ec;
+      --gold: #c9a84c;
+      --gold-light: #e8d5a3;
+      --muted: #6b6560;
+      --card-bg: rgba(255,255,255,0.72);
+      --border: rgba(201,168,76,0.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(245,242,236,0.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      animation: slideDown 0.6s ease both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-100%); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+    .btn-ghost {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-primary {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      text-decoration: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 2px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: #1f1f1f; transform: translateY(-1px); }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 0;
+      padding-top: 5rem;
+    }
+
+    .hero-left {
+      padding: 5rem 3rem 5rem 5rem;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem; height: 1px;
+      background: var(--gold);
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 5vw, 4.8rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-body {
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      max-width: 38ch;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-cta { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+
+    .btn-hero {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2.2rem;
+      border-radius: 2px;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+
+    .btn-hero-dark {
+      background: var(--ink);
+      color: var(--paper);
+      border: 1px solid var(--ink);
+    }
+    .btn-hero-dark:hover { background: #1a1a1a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+
+    .btn-hero-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid rgba(13,13,13,0.3);
+    }
+    .btn-hero-outline:hover { border-color: var(--ink); }
+
+    .stats-row {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-item {}
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .hero-right {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .hero-visual-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(201,168,76,0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 80% at 30% 70%, rgba(13,13,13,0.06) 0%, transparent 60%),
+        linear-gradient(160deg, #e8e2d8 0%, #d6cebe 100%);
+    }
+
+    .hero-card-stack {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 340px;
+    }
+
+    .hcard {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 4px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    .hcard + .hcard { margin-top: 0.75rem; }
+
+    .hcard-1 {
+      transform: rotate(-1.5deg) translateX(-10px);
+      animation: floatA 6s ease-in-out infinite;
+    }
+    .hcard-2 {
+      position: relative; z-index: 2;
+      animation: floatB 6s ease-in-out infinite;
+    }
+    .hcard-3 {
+      transform: rotate(1deg) translateX(8px);
+      animation: floatC 6s ease-in-out infinite;
+    }
+
+    @keyframes floatA { 0%,100% { transform: rotate(-1.5deg) translateX(-10px) translateY(0); } 50% { transform: rotate(-1.5deg) translateX(-10px) translateY(-8px); } }
+    @keyframes floatB { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes floatC { 0%,100% { transform: rotate(1deg) translateX(8px) translateY(0); } 50% { transform: rotate(1deg) translateX(8px) translateY(-10px); } }
+
+    .hcard-eyebrow {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .hcard-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .hcard-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hcard-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .hcard-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1px;
+      text-transform: uppercase;
+    }
+
+    .badge-open { background: #dcfce7; color: #166534; }
+    .badge-escrow { background: #fef9e7; color: #92400e; }
+    .badge-done { background: #ede9fe; color: #4c1d95; }
+
+    .hcard-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .deco-line {
+      position: absolute;
+      background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+      height: 1px;
+      width: 60%;
+    }
+    .deco-line-1 { top: 20%; left: 20%; opacity: 0.6; }
+    .deco-line-2 { bottom: 25%; right: 10%; width: 40%; opacity: 0.4; }
+
+    .deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201,168,76,0.15);
+    }
+    .deco-circle-1 { width: 300px; height: 300px; top: -80px; right: -80px; }
+    .deco-circle-2 { width: 180px; height: 180px; bottom: 10%; left: 5%; }
+
+    .features {
+      padding: 5rem 5rem;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    .feature-item {
+      padding: 0;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .feature-item.visible { opacity: 1; transform: translateY(0); }
+
+    .feature-icon {
+      width: 2.5rem; height: 2.5rem;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--ink);
+      color: var(--gold);
+      font-size: 1rem;
+      border-radius: 2px;
+      margin-bottom: 1rem;
+    }
+
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-body {
+      font-size: 0.85rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+
+    .niches {
+      padding: 0 5rem 5rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .niche-card {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.4);
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .niche-card:hover {
+      background: rgba(255,255,255,0.8);
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    .niche-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+    .niche-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    footer {
+      padding: 2rem 5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { height: 50vw; min-height: 300px; }
+      .hero-left { padding: 3rem 1.5rem; }
+      .features, .niches { grid-template-columns: 1fr 1fr; padding: 3rem 1.5rem; }
+      footer { padding: 2rem 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+
+    @media (max-width: 540px) {
+      .features, .niches { grid-template-columns: 1fr; }
+      .stats-row { flex-wrap: wrap; gap: 1.5rem; }
+      .hero-card-stack { width: 280px; }
+    }
+  </style>
 </head>
-<body class="text-slate-900">
-  <main class="shell px-6 py-10">
-    <section class="grid gap-8 lg:grid-cols-2">
-      <div class="pt-10">
-        <p class="text-sm uppercase tracking-[0.4em] text-slate-500">SpecialistHub</p>
-        <h1 class="mt-6 text-5xl font-semibold leading-tight">Milestone-secured freelance work for specialized professional services.</h1>
-        <p class="mt-6 max-w-xl text-lg text-slate-600">Data science, legal consulting, technical translation, and other high-trust engagements managed with contracts, escrow, revisions, disputes, and audit trails.</p>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Specialist<span>Hub</span></a>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-ghost">Log In</a>
+      <a href="register.html" class="btn-primary">Sign Up</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">The Specialist Platform</p>
+      <h1 class="hero-title">
+        Work that<br>
+        <em>deserves</em><br>
+        protection.
+      </h1>
+      <p class="hero-body">
+        Milestone-secured contracts, escrow payments, and verified credentials for data science, legal, translation, and specialized professional engagements.
+      </p>
+      <div class="hero-cta">
+        <a href="register.html" class="btn-hero btn-hero-dark">
+          Start for free
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="login.html" class="btn-hero btn-hero-outline">Sign in</a>
       </div>
-      <div class="glass rounded-[2rem] border border-white/60 p-8 shadow-2xl">
-        <h2 class="text-2xl font-semibold">Login</h2>
-        <form id="login-form" class="mt-6 space-y-4">
-          <input name="email" class="w-full rounded-2xl border px-4 py-3" placeholder="Email" required>
-          <input type="password" name="password" class="w-full rounded-2xl border px-4 py-3" placeholder="Password" required>
-          <button class="w-full rounded-2xl bg-slate-950 px-4 py-3 text-white">Sign In</button>
-        </form>
-        <a href="register.html" class="mt-4 inline-block text-sm text-sky-700">Create an account</a>
-        <p class="mt-8 text-sm text-slate-500">Default admin: `admin@specialisthub.local` / `admin123`</p>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Specialist Niches</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Escrow Protected</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">KYC</div>
+          <div class="stat-label">Verified Experts</div>
+        </div>
       </div>
-    </section>
-  </main>
-  <script src="js/app.js?v=20260324c"></script>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-visual-bg"></div>
+      <div class="deco-line deco-line-1"></div>
+      <div class="deco-line deco-line-2"></div>
+      <div class="deco-circle deco-circle-1"></div>
+      <div class="deco-circle deco-circle-2"></div>
+
+      <div class="hero-card-stack">
+        <div class="hcard hcard-1">
+          <div class="hcard-eyebrow">Data Science</div>
+          <div class="hcard-title">ML Pipeline Audit & Optimization</div>
+          <div class="hcard-meta">3 milestones · Deadline in 14 days</div>
+          <div class="hcard-footer">
+            <span class="hcard-badge badge-open">Open</span>
+            <span class="hcard-amount">$4,200</span>
+          </div>
+        </div>
+
+        <div class="hcard hcard-2">
+          <div class="hcard-eyebrow">Legal</div>
+          <div class="hcard-title">IP Due Diligence — Series A</div>
+          <div class="hcard-meta">Milestone 2 of 4 · Escrow active</div>
+          <div class="hcard-footer">
+            <span class="hcard-badge badge-escrow">In Escrow</span>
+            <span class="hcard-amount">$9,750</span>
+          </div>
+        </div>
+
+        <div class="hcard hcard-3">
+          <div class="hcard-eyebrow">Translation</div>
+          <div class="hcard-title">Technical Manual · EN → AR</div>
+          <div class="hcard-meta">All milestones approved</div>
+          <div class="hcard-footer">
+            <span class="hcard-badge badge-done">Completed</span>
+            <span class="hcard-amount">$1,850</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="feature-item">
+      <div class="feature-icon">⚖</div>
+      <div class="feature-title">Milestone Contracts</div>
+      <div class="feature-body">Structured payments tied to deliverables. Clients pay only when each milestone is met and approved.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Escrow Protection</div>
+      <div class="feature-body">Funds are held securely and released automatically upon approval, with a 3-day clearing window.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">✦</div>
+      <div class="feature-title">Verified Credentials</div>
+      <div class="feature-body">Freelancers submit and admins review licenses, certifications, and KYC identity documents.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⬡</div>
+      <div class="feature-title">Dispute Resolution</div>
+      <div class="feature-body">Safe-room mediation with assigned arbitrators, evidence assembly, and fair verdict enforcement.</div>
+    </div>
+  </section>
+
+  <section class="niches">
+    <div class="niche-card">
+      <div class="niche-label">Specialty</div>
+      <div class="niche-name">Data Science</div>
+    </div>
+    <div class="niche-card">
+      <div class="niche-label">Specialty</div>
+      <div class="niche-name">Legal Consulting</div>
+    </div>
+    <div class="niche-card">
+      <div class="niche-label">Specialty</div>
+      <div class="niche-name">Translation</div>
+    </div>
+    <div class="niche-card">
+      <div class="niche-label">Specialty</div>
+      <div class="niche-name">Other Experts</div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="footer-copy">© 2026 SpecialistHub. All rights reserved.</span>
+    <span class="footer-copy">Default admin: admin@specialisthub.local / admin123</span>
+  </footer>
+
   <script>
-    document.getElementById('login-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      try {
-        const response = await apiCall('auth.php?action=login', 'POST', Object.fromEntries(new FormData(event.target).entries()));
-        window.sessionUser = response.user;
-        location.replace('dashboard.html');
-      } catch (error) {
-        alert(error.message);
-      }
-    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-item').forEach(el => observer.observe(el));
   </script>
 </body>
 </html>

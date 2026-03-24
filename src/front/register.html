@@ -4,49 +4,220 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register | SpecialistHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #f5f2ec;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .tab-bar {
+      display: flex;
+      border: 1px solid rgba(13,13,13,0.18);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      text-align: center;
+      color: #6b6560;
+      background: transparent;
+      transition: background 0.2s, color 0.2s;
+    }
+    .tab-btn.active { background: #0d0d0d; color: #f5f2ec; }
+    .tab-btn:not(.active):hover { background: rgba(13,13,13,0.06); color: #0d0d0d; }
+
+    .page-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0d0d0d;
+      text-decoration: none;
+    }
+    .page-logo span { color: #c9a84c; }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+    }
+
+    input, select {
+      font-family: 'DM Sans', sans-serif !important;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6b6560;
+      margin-bottom: 0.35rem;
+    }
+
+    .sh-input {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: #0d0d0d;
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(13,13,13,0.18) !important;
+      border-radius: 2px !important;
+      padding: 0.7rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .sh-input:focus { border-color: #c9a84c !important; background: rgba(255,255,255,0.9); }
+
+    .sh-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #f5f2ec;
+      background: #0d0d0d;
+      border: none;
+      border-radius: 2px;
+      padding: 0.85rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+    .sh-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
+  </style>
 </head>
 <body>
-  <main class="shell px-6 py-10">
-    <div class="glass mx-auto max-w-3xl rounded-[2rem] border p-8">
-      <h1 class="text-3xl font-semibold">Create SpecialistHub account</h1>
-      <form id="register-form" class="mt-8 grid gap-4 md:grid-cols-2">
-        <select name="role" id="role" class="rounded-2xl border px-4 py-3">
-          <option value="client">Client</option>
-          <option value="freelancer">Freelancer</option>
-          <option value="admin">Admin</option>
-        </select>
-        <input name="name" class="rounded-2xl border px-4 py-3" placeholder="Full legal name" required>
-        <input name="email" type="email" class="rounded-2xl border px-4 py-3" placeholder="Email" required>
-        <input name="password" type="password" class="rounded-2xl border px-4 py-3" placeholder="Password" required>
-        <input name="country" class="rounded-2xl border px-4 py-3" placeholder="Country" required>
-        <input name="timezone" class="rounded-2xl border px-4 py-3" placeholder="Timezone" value="UTC" required>
-        <input name="id_type" class="rounded-2xl border px-4 py-3" placeholder="ID Type">
-        <select name="admin_role" class="rounded-2xl border px-4 py-3">
-          <option value="">No admin role</option>
-          <option value="financial_admin">Financial Admin</option>
-          <option value="dispute_mediator">Dispute Mediator</option>
-          <option value="tech_support">Tech Support</option>
-        </select>
-        <div id="freelancer-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-2">
-          <select name="niche" class="rounded-2xl border px-4 py-3">
-            <option value="data_science">Data Science</option>
-            <option value="legal">Legal</option>
-            <option value="translation">Translation</option>
-            <option value="other">Other</option>
-          </select>
-          <input name="hourly_rate" class="rounded-2xl border px-4 py-3" placeholder="Hourly rate">
-        </div>
-        <button class="md:col-span-2 rounded-2xl bg-slate-950 px-4 py-3 text-white">Register</button>
-      </form>
+  <main class="shell px-6 py-8">
+    <div class="top-bar">
+      <a href="index.html" class="page-logo">Specialist<span>Hub</span></a>
+    </div>
+
+    <div class="mx-auto max-w-2xl">
+      <div class="mb-6">
+        <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0d0d0d;margin-bottom:0.4rem;">Create account</h1>
+        <p style="font-size:0.9rem;color:#6b6560;">Already have an account? <a href="login.html" style="color:#c9a84c;text-decoration:none;font-weight:500;">Sign in</a></p>
+      </div>
+
+      <div class="tab-bar">
+        <a href="login.html" class="tab-btn">Log In</a>
+        <a href="register.html" class="tab-btn active">Sign Up</a>
+      </div>
+
+      <div class="glass rounded-[1.5rem] border border-white/60 p-8 shadow-xl" style="background:rgba(255,255,255,0.72);backdrop-filter:blur(18px);">
+        <form id="register-form" class="grid gap-5 md:grid-cols-2">
+
+          <div class="md:col-span-2">
+            <label class="form-label">Account type</label>
+            <select name="role" id="role" class="sh-input">
+              <option value="client">Client — I need specialists</option>
+              <option value="freelancer">Freelancer — I offer expertise</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label">Full legal name</label>
+            <input name="name" class="sh-input" placeholder="Jane Smith" required>
+          </div>
+
+          <div>
+            <label class="form-label">Email address</label>
+            <input name="email" type="email" class="sh-input" placeholder="you@example.com" required>
+          </div>
+
+          <div>
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="sh-input" placeholder="••••••••" required>
+          </div>
+
+          <div>
+            <label class="form-label">Country</label>
+            <input name="country" class="sh-input" placeholder="Egypt" required>
+          </div>
+
+          <div>
+            <label class="form-label">Timezone</label>
+            <input name="timezone" class="sh-input" placeholder="UTC" value="UTC" required>
+          </div>
+
+          <div>
+            <label class="form-label">ID Type <span style="color:#6b6560;font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></label>
+            <input name="id_type" class="sh-input" placeholder="national_id, passport…">
+          </div>
+
+          <div id="freelancer-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-2">
+            <div>
+              <label class="form-label">Specialty niche</label>
+              <select name="niche" class="sh-input">
+                <option value="data_science">Data Science</option>
+                <option value="legal">Legal</option>
+                <option value="translation">Translation</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Hourly rate (USD)</label>
+              <input name="hourly_rate" class="sh-input" placeholder="0.00">
+            </div>
+          </div>
+
+          <div id="admin-fields" class="hidden md:col-span-2">
+            <label class="form-label">Admin role</label>
+            <select name="admin_role" class="sh-input">
+              <option value="">No admin role</option>
+              <option value="financial_admin">Financial Admin</option>
+              <option value="dispute_mediator">Dispute Mediator</option>
+              <option value="tech_support">Tech Support</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <button type="submit" class="sh-btn">Create account →</button>
+          </div>
+
+        </form>
+      </div>
     </div>
   </main>
+
   <script src="js/app.js?v=20260324c"></script>
   <script>
-    document.getElementById('role').addEventListener('change', (event) => {
-      document.getElementById('freelancer-fields').classList.toggle('hidden', event.target.value !== 'freelancer');
-    });
+    const roleSelect = document.getElementById('role');
+    const freelancerFields = document.getElementById('freelancer-fields');
+    const adminFields = document.getElementById('admin-fields');
+
+    function toggleFields() {
+      const val = roleSelect.value;
+      freelancerFields.classList.toggle('hidden', val !== 'freelancer');
+      adminFields.classList.toggle('hidden', val !== 'admin');
+    }
+
+    roleSelect.addEventListener('change', toggleFields);
+    toggleFields();
+
     document.getElementById('register-form').addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
