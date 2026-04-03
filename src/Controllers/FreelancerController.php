@@ -161,7 +161,6 @@ class FreelancerController extends BaseController
         $timezone = $viewer['timezone'] ?? 'UTC';
         $viewerTz = new DateTimeZone($timezone);
         $utc = new DateTimeZone('UTC');
-        // Anchor Sunday 1970-01-04 UTC; day_of_week 0–6 = Sun–Sat (matches previous behavior).
         $weekStartSunday = new DateTimeImmutable('1970-01-04', $utc);
 
         return array_map(function ($slot) use ($viewerTz, $utc, $weekStartSunday) {
