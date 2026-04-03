@@ -28,7 +28,6 @@ class EscrowService
             'type' => 'lock',
             'status' => 'pending',
         ]);
-        $this->milestones->updateStatus((int) $milestone['id'], 'in_progress');
         $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'escrow_lock', 'escrow_transaction', $id, null, ['milestone_id' => $milestone['id'], 'amount' => $milestone['amount']]);
         return $id;
     }

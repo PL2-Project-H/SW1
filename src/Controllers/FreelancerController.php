@@ -75,6 +75,8 @@ class FreelancerController extends BaseController
             'translation' => ['language_pair' => $data['language_pair'] ?? ''],
             default => [],
         };
+        $metadata['client_name'] = trim((string) ($data['client_name'] ?? ''));
+        $metadata['project_outcome'] = trim((string) ($data['project_outcome'] ?? ''));
         $id = $this->freelancers->addPortfolioItem($userId, [
             'title' => $data['title'] ?? 'Portfolio item',
             'file_path' => $path,
@@ -106,17 +108,25 @@ class FreelancerController extends BaseController
         }
         $profile['portfolio'] = array_map(function ($item) {
             $metadata = $item['metadata_json'] ? json_decode($item['metadata_json'], true) : [];
+            $outcome = $metadata['project_outcome']
+                ?? $metadata['dataset_description']
+                ?? $metadata['case_type']
+                ?? $metadata['language_pair']
+                ?? 'Project outcome not provided';
             if ((int) $item['is_confidential'] === 1) {
                 return [
                     'id' => $item['id'],
                     'niche' => $item['niche'],
-                    'success_metric' => $metadata['dataset_description'] ?? $metadata['case_type'] ?? $metadata['language_pair'] ?? 'Confidential project',
+                    'project_outcome' => $outcome,
                     'date' => $item['created_at'],
-                    'title' => 'Confidential project',
-                    'client' => 'Hidden',
+                    'title' => $item['title'],
+                    'client_name' => 'Hidden',
+                    'metadata' => array_merge($metadata, ['client_name' => 'Hidden', 'project_outcome' => $outcome]),
                 ];
             }
             $item['metadata'] = $metadata;
+            $item['client_name'] = $metadata['client_name'] ?? 'Private client';
+            $item['project_outcome'] = $outcome;
             return $item;
         }, array_filter($profile['portfolio'] ?? [], fn ($item) => (int) $item['is_public'] === 1));
         Response::json($profile);
@@ -149,19 +159,56 @@ class FreelancerController extends BaseController
         $viewerId = $_SESSION['user_id'] ?? null;
         $viewer = $viewerId ? (new UserRepository())->findById((int) $viewerId) : null;
         $timezone = $viewer['timezone'] ?? 'UTC';
-        $tz = new DateTimeZone($timezone);
-        return array_map(function ($slot) use ($tz) {
-            $baseStart = new DateTime('1970-01-0' . ((int) $slot['day_of_week'] + 4) . ' ' . $slot['start_time_utc'], new DateTimeZone('UTC'));
-            $baseEnd = new DateTime('1970-01-0' . ((int) $slot['day_of_week'] + 4) . ' ' . $slot['end_time_utc'], new DateTimeZone('UTC'));
-            $baseStart->setTimezone($tz);
-            $baseEnd->setTimezone($tz);
+        $viewerTz = new DateTimeZone($timezone);
+        $utc = new DateTimeZone('UTC');
+        // Anchor Sunday 1970-01-04 UTC; day_of_week 0–6 = Sun–Sat (matches previous behavior).
+        $weekStartSunday = new DateTimeImmutable('1970-01-04', $utc);
+
+        return array_map(function ($slot) use ($viewerTz, $utc, $weekStartSunday) {
+            $dow = max(0, min(6, (int) $slot['day_of_week']));
+            $day = $weekStartSunday->modify('+' . $dow . ' days');
+            $datePart = $day->format('Y-m-d');
+            $startUtc = DateTimeImmutable::createFromFormat(
+                'Y-m-d H:i:s',
+                $datePart . ' ' . self::normalizeTimeForUtc($slot['start_time_utc']),
+                $utc
+            );
+            $endUtc = DateTimeImmutable::createFromFormat(
+                'Y-m-d H:i:s',
+                $datePart . ' ' . self::normalizeTimeForUtc($slot['end_time_utc']),
+                $utc
+            );
+            if (!$startUtc || !$endUtc) {
+                return [
+                    'day_of_week' => $slot['day_of_week'],
+                    'start' => '00:00',
+                    'end' => '00:00',
+                    'viewer_timezone' => $viewerTz->getName(),
+                ];
+            }
+            $startLocal = $startUtc->setTimezone($viewerTz);
+            $endLocal = $endUtc->setTimezone($viewerTz);
+
             return [
                 'day_of_week' => $slot['day_of_week'],
-                'start' => $baseStart->format('H:i'),
-                'end' => $baseEnd->format('H:i'),
-                'viewer_timezone' => $tz->getName(),
+                'start' => $startLocal->format('H:i'),
+                'end' => $endLocal->format('H:i'),
+                'viewer_timezone' => $viewerTz->getName(),
             ];
         }, $slots);
+    }
+
+    private static function normalizeTimeForUtc(mixed $time): string
+    {
+        $s = trim((string) $time);
+        if ($s === '') {
+            return '00:00:00';
+        }
+        if (preg_match('/^\d{1,2}:\d{2}$/', $s)) {
+            return $s . ':00';
+        }
+
+        return $s;
     }
 
     public function search(): void

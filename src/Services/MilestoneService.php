@@ -55,7 +55,7 @@ class MilestoneService
         }
         if (!empty($milestone['dependency_milestone_id'])) {
             $dependency = $this->milestones->getMilestone((int) $milestone['dependency_milestone_id']);
-            if (!in_array($dependency['status'], ['approved', 'auto_approved'], true)) {
+            if (!in_array($dependency['status'], ['approved', 'auto_approved', 'complete'], true)) {
                 Response::error('Dependency milestone is not approved yet', 422);
             }
         }

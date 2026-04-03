@@ -7,7 +7,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   qs('timezone').value = profile.timezone || '';
   qs('skills').value = (profile.skills || []).map((item) => item.name).join(', ');
   qs('digest_opt_in').checked = Boolean(Number(profile.digest_opt_in ?? 1));
-  renderList('portfolio-list', profile.portfolio || [], (item) => `<div class="rounded-2xl border p-4"><div class="font-semibold">${item.title}</div><div class="text-sm text-slate-500">${item.file_path}</div></div>`);
+  renderList('portfolio-list', profile.portfolio || [], (item) => {
+    const metadata = item.metadata_json ? JSON.parse(item.metadata_json) : {};
+    const clientName = metadata.client_name || 'Private client';
+    const outcome = metadata.project_outcome || metadata.dataset_description || metadata.case_type || metadata.language_pair || 'No outcome provided';
+    return `<div class="rounded-2xl border p-4">
+      <div class="font-semibold">${item.title}</div>
+      <div class="text-sm text-slate-500">${item.file_path}</div>
+      <div class="mt-2 text-sm text-slate-600">Client: ${item.is_confidential == 1 ? 'Hidden' : clientName}</div>
+      <div class="text-sm text-slate-600">Outcome: ${outcome}</div>
+    </div>`;
+  });
   renderList('credential-list', profile.credentials || [], (item) => `<div class="rounded-2xl border p-4"><div>${item.type}</div><div class="text-sm text-slate-500">${item.status}</div></div>`);
   renderList('availability-list', profile.availability || [], (item) => `<div class="rounded-xl border p-3 text-sm">Day ${item.day_of_week}: ${item.start_time_utc} - ${item.end_time_utc}</div>`);
   renderList('kyc-list', profile.kyc_submissions || [], (item) => `<div class="rounded-2xl border p-4"><div>${item.document_kind}</div><div class="text-sm text-slate-500">${item.account_type} | ${item.status}</div></div>`);

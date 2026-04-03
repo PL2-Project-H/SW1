@@ -32,14 +32,49 @@ class DisputeService
         $deliverables->execute([$contractId]);
         $amendments = $pdo->prepare('SELECT * FROM contract_amendments WHERE contract_id = ?');
         $amendments->execute([$contractId]);
+        $contractMessages = $pdo->prepare('SELECT * FROM contract_messages WHERE contract_id = ? ORDER BY sent_at ASC');
+        $contractMessages->execute([$contractId]);
         $snapshots = $pdo->prepare('SELECT w.* FROM wip_snapshots w JOIN milestones m ON m.id = w.milestone_id WHERE m.contract_id = ?');
         $snapshots->execute([$contractId]);
-        $auditLogs = $pdo->prepare('SELECT * FROM audit_logs WHERE entity_type IN ("contract", "milestone", "deliverable", "escrow_transaction") AND entity_id IN (?, ?, ?)');
-        $auditLogs->execute([$contractId, $contractId, $contractId]);
+
+        $milestoneIds = $pdo->prepare('SELECT id FROM milestones WHERE contract_id = ?');
+        $milestoneIds->execute([$contractId]);
+        $milestoneIds = array_map('intval', array_column($milestoneIds->fetchAll(), 'id'));
+
+        $deliverableIds = $pdo->prepare('SELECT d.id FROM deliverables d JOIN milestones m ON m.id = d.milestone_id WHERE m.contract_id = ?');
+        $deliverableIds->execute([$contractId]);
+        $deliverableIds = array_map('intval', array_column($deliverableIds->fetchAll(), 'id'));
+
+        $escrowIds = $pdo->prepare('SELECT id FROM escrow_transactions WHERE contract_id = ?');
+        $escrowIds->execute([$contractId]);
+        $escrowIds = array_map('intval', array_column($escrowIds->fetchAll(), 'id'));
+
+        $auditConditions = ['(entity_type = "contract" AND entity_id = ?)'];
+        $auditParams = [$contractId];
+        if ($milestoneIds !== []) {
+            $auditConditions[] = '(entity_type = "milestone" AND entity_id IN (' . implode(', ', array_fill(0, count($milestoneIds), '?')) . '))';
+            array_push($auditParams, ...$milestoneIds);
+        }
+        if ($deliverableIds !== []) {
+            $auditConditions[] = '(entity_type = "deliverable" AND entity_id IN (' . implode(', ', array_fill(0, count($deliverableIds), '?')) . '))';
+            array_push($auditParams, ...$deliverableIds);
+        }
+        if ($escrowIds !== []) {
+            $auditConditions[] = '(entity_type = "escrow_transaction" AND entity_id IN (' . implode(', ', array_fill(0, count($escrowIds), '?')) . '))';
+            array_push($auditParams, ...$escrowIds);
+        }
+
+        $auditLogs = $pdo->prepare(
+            'SELECT * FROM audit_logs WHERE ' . implode(' OR ', $auditConditions) . ' ORDER BY created_at DESC'
+        );
+        $auditLogs->execute($auditParams);
 
         $payload = [
             'dispute' => $dispute,
-            'messages' => $messages,
+            'messages' => [
+                'safe_room' => $messages,
+                'contract_thread' => $contractMessages->fetchAll(),
+            ],
             'deliverables' => $deliverables->fetchAll(),
             'amendments' => $amendments->fetchAll(),
             'snapshots' => $snapshots->fetchAll(),

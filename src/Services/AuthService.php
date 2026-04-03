@@ -155,6 +155,8 @@ class AuthService
                 return;
             }
         }
+
+        Response::error('Unknown admin action', 403);
     }
 
     private function enforceCsrf(): void

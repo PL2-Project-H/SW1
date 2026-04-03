@@ -26,21 +26,43 @@ class AdminMetricsRepository extends BaseRepository
 
     public function nicheReport(): array
     {
-        $rows = $this->fetchAllRows(
-            'SELECT jp.niche,
-                    SUM(CASE WHEN c.status = "active" THEN 1 ELSE 0 END) AS active_contracts,
-                    SUM(CASE WHEN c.status IN ("completed", "final_resolved") THEN 1 ELSE 0 END) AS completed_contracts,
-                    COALESCE(SUM(CASE WHEN et.type = "release" THEN et.amount ELSE 0 END), 0) AS total_revenue,
-                    AVG(c.total_amount) AS average_contract_value,
-                    (SUM(CASE WHEN d.id IS NOT NULL THEN 1 ELSE 0 END) / NULLIF(COUNT(c.id), 0)) * 100 AS dispute_rate
-             FROM job_posts jp
-             LEFT JOIN contracts c ON c.job_id = jp.id
-             LEFT JOIN disputes d ON d.contract_id = c.id
-             LEFT JOIN escrow_transactions et ON et.contract_id = c.id
-             GROUP BY jp.niche
-             ORDER BY total_revenue DESC'
-        );
+        $rows = $this->fetchAllRows('SELECT DISTINCT niche FROM job_posts ORDER BY niche ASC');
         foreach ($rows as &$row) {
+            $niche = $row['niche'];
+            $row['active_jobs'] = (int) ($this->fetch(
+                'SELECT COUNT(*) AS c FROM job_posts WHERE niche = ? AND status IN ("open", "private", "awarded")',
+                [$niche]
+            )['c'] ?? 0);
+            $row['active_contracts'] = (int) ($this->fetch(
+                'SELECT COUNT(*) AS c
+                 FROM contracts c
+                 JOIN job_posts jp ON jp.id = c.job_id
+                 WHERE jp.niche = ? AND c.status = "active"',
+                [$niche]
+            )['c'] ?? 0);
+            $row['average_contract_value'] = (float) ($this->fetch(
+                'SELECT COALESCE(AVG(c.total_amount), 0) AS avg_value
+                 FROM contracts c
+                 JOIN job_posts jp ON jp.id = c.job_id
+                 WHERE jp.niche = ?',
+                [$niche]
+            )['avg_value'] ?? 0);
+            $row['total_revenue'] = (float) ($this->fetch(
+                'SELECT COALESCE(SUM(et.amount), 0) AS total_revenue
+                 FROM escrow_transactions et
+                 JOIN contracts c ON c.id = et.contract_id
+                 JOIN job_posts jp ON jp.id = c.job_id
+                 WHERE jp.niche = ? AND et.type = "release"',
+                [$niche]
+            )['total_revenue'] ?? 0);
+            $row['dispute_rate'] = (float) ($this->fetch(
+                'SELECT COALESCE((COUNT(DISTINCT d.id) / NULLIF(COUNT(DISTINCT c.id), 0)) * 100, 0) AS dispute_rate
+                 FROM contracts c
+                 JOIN job_posts jp ON jp.id = c.job_id
+                 LEFT JOIN disputes d ON d.contract_id = c.id
+                 WHERE jp.niche = ?',
+                [$niche]
+            )['dispute_rate'] ?? 0);
             $row['top_rated_freelancers'] = $this->fetchAllRows(
                 'SELECT u.name, rs.composite_score
                  FROM freelancer_profiles fp
@@ -49,9 +71,10 @@ class AdminMetricsRepository extends BaseRepository
                  WHERE fp.niche = ?
                  ORDER BY rs.composite_score DESC, u.name ASC
                  LIMIT 3',
-                [$row['niche']]
+                [$niche]
             );
         }
+        usort($rows, fn ($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
         return $rows;
     }
 }
