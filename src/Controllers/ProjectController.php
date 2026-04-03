@@ -105,7 +105,7 @@ class ProjectController extends BaseController
     {
         $this->requireAuth('freelancer');
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
-        $path = $this->uploadFile('deliverables', (int) $_SESSION['user_id'], ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip']);
+        $path = $this->uploadFile('deliverables', (int) $_SESSION['user_id'], ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip', 'txt']);
         $id = $this->milestones->handleDeliverable($milestoneId, $path);
         Response::json(['id' => $id, 'file_path' => $path]);
     }

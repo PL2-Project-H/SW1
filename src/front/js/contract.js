@@ -2,6 +2,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkSession();
   const params = new URLSearchParams(location.search);
   const contractId = params.get('contract_id');
+  const milestoneId = params.get('milestone_id');
+
+  if (milestoneId) {
+    try {
+      const milestone = await apiCall(`project.php?action=milestones/${milestoneId}`);
+      // Use a small timeout to ensure DOM is fully ready for manipulation if needed, 
+      // although DOMContentLoaded should be enough.
+      setTimeout(() => renderMilestoneDetail(milestone, user), 50);
+    } catch (e) {
+      console.error('Failed to load milestone detail', e);
+    }
+  }
+
   const contracts = contractId ? [await apiCall(`project.php?action=contracts/${contractId}`)] : await apiCall('project.php?action=contracts/active');
   qs('contract-list').innerHTML = contracts.map((contract) => renderContract(contract, user)).join('') || '<p class="text-slate-500">No active contracts.</p>';
 
@@ -14,6 +27,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     location.reload();
   });
 });
+
+async function renderMilestoneDetail(milestone, user) {
+  const detail = document.getElementById('milestone-detail');
+  if (!detail) {
+     console.error('milestone-detail element not found');
+     return;
+  }
+  detail.classList.remove('hidden');
+  
+  let actions = '';
+  if (user.role === 'freelancer' && milestone.status === 'in_progress') {
+    const checklist = await apiCall('project.php?action=contracts/qa-checklist');
+    actions = `
+      <form id="qa-form" class="glass rounded-3xl border p-6 space-y-4">
+        <h3 class="text-xl font-semibold">QA Checklist</h3>
+        <div class="space-y-2">
+          ${checklist.map(item => `
+            <label class="flex items-center gap-2">
+              <input type="checkbox" name="${item.key}" required> ${item.label}
+            </label>
+          `).join('')}
+        </div>
+        <button class="rounded-xl bg-indigo-600 px-4 py-2 text-white">Submit QA Checklist</button>
+      </form>
+      <form id="deliverable-form" class="mt-6 glass rounded-3xl border p-6 space-y-4">
+        <h3 class="text-xl font-semibold">Submit Deliverable</h3>
+        <input type="file" name="file" required class="w-full">
+        <button class="rounded-xl bg-slate-900 px-4 py-2 text-white">Upload & Submit</button>
+      </form>
+    `;
+  }
+
+  detail.innerHTML = `
+    <div class="glass rounded-3xl border p-6">
+      <h2 class="text-2xl font-semibold">${milestone.title}</h2>
+      <p class="text-sm text-slate-500">Status: ${milestone.status} | Amount: $${milestone.amount}</p>
+      <div class="mt-4">${actions}</div>
+    </div>
+  `;
+
+  document.getElementById('qa-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const checklist = {};
+    formData.forEach((value, key) => checklist[key] = true);
+    await apiCall('project.php?action=contracts/qa-checklist/submit', 'POST', {
+      milestone_id: milestone.id,
+      checklist
+    });
+    alert('QA Checklist submitted!');
+  });
+
+  document.getElementById('deliverable-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    formData.append('milestone_id', milestone.id);
+    await apiCall('project.php?action=milestones/submit', 'POST', formData);
+    location.reload();
+  });
+}
 
 function renderContract(contract, user) {
   const milestones = contract.milestones || [];

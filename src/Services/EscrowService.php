@@ -3,11 +3,13 @@
 class EscrowService
 {
     private EscrowRepository $escrow;
+    private MilestoneRepository $milestones;
     private AuditService $audit;
 
     public function __construct()
     {
         $this->escrow = new EscrowRepository();
+        $this->milestones = new MilestoneRepository();
         $this->audit = new AuditService();
     }
 
@@ -26,7 +28,8 @@ class EscrowService
             'type' => 'lock',
             'status' => 'pending',
         ]);
-        $this->audit->log((int) $_SESSION['user_id'], 'escrow_lock', 'escrow_transaction', $id, null, ['milestone_id' => $milestone['id'], 'amount' => $milestone['amount']]);
+        $this->milestones->updateStatus((int) $milestone['id'], 'in_progress');
+        $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'escrow_lock', 'escrow_transaction', $id, null, ['milestone_id' => $milestone['id'], 'amount' => $milestone['amount']]);
         return $id;
     }
 

@@ -116,7 +116,7 @@ class BaseController
     protected function dateTimeField(array $data, string $key): string
     {
         $value = $this->stringField($data, $key, 32);
-        $formats = ['Y-m-d H:i:s', DATE_ATOM, 'Y-m-d\TH:i:s'];
+        $formats = ['Y-m-d H:i:s', DATE_ATOM, 'Y-m-d\TH:i:s', 'Y-m-d\TH:i'];
 
         foreach ($formats as $format) {
             $parsed = DateTimeImmutable::createFromFormat($format, $value, new DateTimeZone('UTC'));

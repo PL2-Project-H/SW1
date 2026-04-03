@@ -47,24 +47,20 @@ class Database
 
     private function ensureDefaultAdmin(): void
     {
-        $statement = $this->pdo->prepare('SELECT id, password_hash FROM users WHERE email = ? LIMIT 1');
+        $statement = $this->pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
         $statement->execute([self::DEFAULT_ADMIN_EMAIL]);
         $admin = $statement->fetch();
 
-        if (!$admin) {
+        if ($admin) {
             return;
         }
 
-        if (password_verify(self::DEFAULT_ADMIN_PASSWORD, $admin['password_hash'])) {
-            return;
-        }
-
-        $update = $this->pdo->prepare(
-            'UPDATE users
-             SET password_hash = ?, role = ?, admin_role = ?, status = ?, kyc_status = ?, timezone = ?, country = ?, name = ?
-             WHERE id = ?'
+        $insert = $this->pdo->prepare(
+            'INSERT INTO users (email, password_hash, role, admin_role, status, kyc_status, timezone, country, name)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
-        $update->execute([
+        $insert->execute([
+            self::DEFAULT_ADMIN_EMAIL,
             password_hash(self::DEFAULT_ADMIN_PASSWORD, PASSWORD_BCRYPT),
             'admin',
             'dispute_mediator',
@@ -72,8 +68,7 @@ class Database
             'verified',
             'Africa/Cairo',
             'Egypt',
-            'Platform Admin',
-            (int) $admin['id'],
+            'Platform Admin'
         ]);
     }
 }

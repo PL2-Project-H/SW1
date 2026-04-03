@@ -22,18 +22,27 @@ class MilestoneService
     public function buildMilestones(int $contractId, array $items): array
     {
         $contract = $this->contracts->getContract($contractId);
+        
+        $sum = 0;
+        foreach ($items as $item) {
+            $sum += (float) ($item['amount'] ?? 0);
+        }
+        if (round($sum, 2) !== round((float) $contract['total_amount'], 2)) {
+            Response::error('Milestone amounts must sum to contract total amount: ' . $contract['total_amount'], 422);
+        }
+
         $created = [];
+        $index = 1;
         foreach ($items as $item) {
             $created[] = $this->milestones->createMilestone([
                 'contract_id' => $contractId,
                 'title' => $item['title'],
                 'amount' => $item['amount'],
-                'order_index' => $item['order_index'],
+                'order_index' => $item['order_index'] ?? $index++,
                 'due_date' => $item['due_date'],
                 'dependency_milestone_id' => $item['dependency_milestone_id'] ?? null,
             ]);
         }
-        (new ContractService())->validateMilestoneTotals($contractId);
         $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'milestones_built', 'contract', $contractId, null, ['count' => count($created), 'contract_total' => $contract['total_amount']]);
         return $created;
     }
