@@ -26,20 +26,28 @@ class InterviewRepository extends BaseRepository
         );
     }
 
-    public function listForClient(int $clientId): array
+    public function listForClient(int $clientId, ?int $jobId = null): array
     {
-        return $this->fetchAllRows(
-            'SELECT * FROM interviews WHERE client_id = ? ORDER BY scheduled_at DESC',
-            [$clientId]
-        );
+        $sql = 'SELECT * FROM interviews WHERE client_id = ?';
+        $params = [$clientId];
+        if ($jobId !== null) {
+            $sql .= ' AND job_id = ?';
+            $params[] = $jobId;
+        }
+        $sql .= ' ORDER BY scheduled_at DESC';
+        return $this->fetchAllRows($sql, $params);
     }
 
-    public function listForFreelancer(int $freelancerId): array
+    public function listForFreelancer(int $freelancerId, ?int $jobId = null): array
     {
-        return $this->fetchAllRows(
-            'SELECT * FROM interviews WHERE freelancer_id = ? ORDER BY COALESCE(counter_scheduled_at, scheduled_at) DESC',
-            [$freelancerId]
-        );
+        $sql = 'SELECT * FROM interviews WHERE freelancer_id = ?';
+        $params = [$freelancerId];
+        if ($jobId !== null) {
+            $sql .= ' AND job_id = ?';
+            $params[] = $jobId;
+        }
+        $sql .= ' ORDER BY COALESCE(counter_scheduled_at, scheduled_at) DESC';
+        return $this->fetchAllRows($sql, $params);
     }
 
     public function updateForFreelancer(int $interviewId, int $freelancerId, string $status, ?string $scheduledAt, ?string $timezone, ?string $notes): void

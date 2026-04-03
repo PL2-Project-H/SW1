@@ -134,9 +134,26 @@ class ProjectController extends BaseController
     public function respondInterview(array $data): void
     {
         $freelancerId = $this->requireAuth('freelancer');
+        $repo = new InterviewRepository();
+        $interviewId = $this->intField($data, 'interview_id', 1);
+        $interviews = $repo->listForFreelancer($freelancerId);
+        $interview = null;
+        foreach ($interviews as $i) {
+            if ((int) $i['id'] === $interviewId) {
+                $interview = $i;
+                break;
+            }
+        }
+        if (!$interview) {
+            Response::error('Interview not found', 404);
+        }
+        if (!in_array($interview['status'], ['pending', 'countered'], true)) {
+            Response::error('Interview is already ' . $interview['status'], 422);
+        }
+
         $status = $this->enumField($data, 'status', ['accepted', 'countered', 'canceled']);
-        (new InterviewRepository())->updateForFreelancer(
-            $this->intField($data, 'interview_id', 1),
+        $repo->updateForFreelancer(
+            $interviewId,
             $freelancerId,
             $status,
             $status === 'countered' ? $this->dateTimeField($data, 'scheduled_at') : null,
@@ -149,7 +166,8 @@ class ProjectController extends BaseController
     public function myInterviews(): void
     {
         $freelancerId = $this->requireAuth('freelancer');
-        Response::json((new InterviewRepository())->listForFreelancer($freelancerId));
+        $jobId = $this->queryInt('job_id', 1);
+        Response::json((new InterviewRepository())->listForFreelancer($freelancerId, $jobId));
     }
 
     public function listSnapshots(): void

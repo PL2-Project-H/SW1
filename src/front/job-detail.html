@@ -45,56 +45,118 @@
       const interviewForm = document.getElementById('interview-form');
       if (!jobId) return;
       if (user.role === 'freelancer') {
-        const interviews = await apiCall('project.php?action=interviews/mine');
-        document.getElementById('interview-list').innerHTML = interviews.map((interview) => `
-          <div class="rounded-2xl border p-4">
-            <div class="font-semibold">Interview #${interview.id}</div>
-            <div class="text-sm text-slate-500">${interview.scheduled_at} ${interview.timezone} | ${interview.status}</div>
-            <div class="mt-3 flex gap-2">
-              <button onclick="clientAction('project.php?action=interviews/respond',{interview_id:${interview.id},status:'accepted'})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
-              <button onclick="counterInterview(${interview.id})" class="rounded bg-amber-500 px-3 py-2 text-sm text-white">Counter</button>
+        const interviews = await apiCall(`project.php?action=interviews/mine&job_id=${jobId}`);
+        document.getElementById('interview-list').innerHTML = `
+          <h2 class="text-2xl font-semibold mb-4">Your Interviews</h2>
+          ${interviews.map((interview) => `
+            <div class="rounded-2xl border p-4 mb-3">
+              <div class="font-semibold">Interview #${interview.id}</div>
+              <div class="text-sm text-slate-500">${interview.scheduled_at} ${interview.timezone} | Status: <span class="font-bold">${interview.status}</span></div>
+              ${interview.status === 'pending' || (interview.status === 'countered' && interview.proposed_by != user.id) ? `
+                <div class="mt-3 flex gap-2">
+                  <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'accepted'})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
+                  <button onclick="counterInterview(${interview.id})" class="rounded bg-amber-500 px-3 py-2 text-sm text-white">Counter</button>
+                  <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'canceled'})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Decline</button>
+                </div>
+              ` : ''}
             </div>
-          </div>
-        `).join('');
+          `).join('') || '<p class="text-slate-500">No interviews scheduled.</p>'}
+        `;
         bidForm.addEventListener('submit', async (event) => {
           event.preventDefault();
-          const payload = Object.fromEntries(new FormData(event.target).entries());
-          payload.job_id = jobId;
-          await apiCall('project.php?action=bids/submit', 'POST', payload);
-          alert('Bid submitted');
+          try {
+            const payload = Object.fromEntries(new FormData(event.target).entries());
+            payload.job_id = jobId;
+            await apiCall('project.php?action=bids/submit', 'POST', payload);
+            alert('Bid submitted');
+            location.reload();
+          } catch (e) {
+            alert(e.message);
+          }
         });
       } else {
         bidForm.classList.add('hidden');
-        const bids = await apiCall(`client.php?action=bids&job_id=${jobId}`);
-        document.getElementById('job-bids').innerHTML = bids.map((bid) => `
-          <div class="rounded-2xl border p-4">
-            <div class="font-semibold">${bid.freelancer_name} | $${bid.amount}</div>
-            <div class="text-sm text-slate-500">${bid.proposal_text}</div>
-            <div class="mt-3 flex gap-2">
-              <button onclick="clientAction('client.php?action=bids/accept',{bid_id:${bid.id}})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
-              <button onclick="clientAction('client.php?action=bids/reject',{bid_id:${bid.id}})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Reject</button>
+        const [bids, interviews, contracts] = await Promise.all([
+          apiCall(`client.php?action=bids&job_id=${jobId}`),
+          apiCall(`client.php?action=interviews&job_id=${jobId}`),
+          apiCall('project.php?action=contracts/active')
+        ]);
+
+        const jobContracts = contracts.filter(c => c.job_id == jobId);
+
+        document.getElementById('job-bids').innerHTML = `
+          <h2 class="text-2xl font-semibold mb-4">Bids</h2>
+          ${bids.map((bid) => `
+            <div class="rounded-2xl border p-4 mb-3">
+              <div class="flex items-center justify-between">
+                <div class="font-semibold">${bid.freelancer_name} | $${bid.amount}</div>
+                <div class="badge ${bid.status === 'accepted' ? 'badge-open' : (bid.status === 'rejected' ? 'badge-danger' : 'badge-info')}">${bid.status}</div>
+              </div>
+              <div class="text-sm text-slate-500 mt-1">${bid.proposal_text}</div>
+              ${bid.status === 'pending' ? `
+                <div class="mt-3 flex gap-2">
+                  <button onclick="actionPost('client.php?action=bids/accept',{bid_id:${bid.id}})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
+                  <button onclick="actionPost('client.php?action=bids/reject',{bid_id:${bid.id}})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Reject</button>
+                </div>
+              ` : ''}
             </div>
-          </div>
-        `).join('');
+          `).join('') || '<p class="text-slate-500">No bids yet.</p>'}
+          
+          <h2 class="text-2xl font-semibold mt-8 mb-4">Active Contracts</h2>
+          ${jobContracts.map(c => `
+            <div class="rounded-2xl border p-4 mb-3">
+              <div class="flex items-center justify-between">
+                <div class="font-semibold">Contract #${c.id}</div>
+                <div class="badge badge-warning">${c.status}</div>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <a href="contract.html?contract_id=${c.id}" class="rounded bg-slate-800 px-3 py-2 text-sm text-white">Manage</a>
+                ${c.status === 'pending_nda' ? `<button onclick="actionPost('client.php?action=contracts/nda/sign',{job_id:${c.job_id}})" class="rounded bg-indigo-600 px-3 py-2 text-sm text-white">Sign NDA</button>` : ''}
+              </div>
+            </div>
+          `).join('') || '<p class="text-slate-500">No contracts created yet.</p>'}
+
+          <h2 class="text-2xl font-semibold mt-8 mb-4">Scheduled Interviews</h2>
+          ${interviews.map(i => `
+            <div class="rounded-2xl border p-4 mb-3">
+              <div class="font-semibold">Freelancer ID: ${i.freelancer_id}</div>
+              <div class="text-sm text-slate-500">${i.scheduled_at} ${i.timezone} | <span class="font-bold">${i.status}</span></div>
+            </div>
+          `).join('') || '<p class="text-slate-500">No interviews scheduled yet.</p>'}
+        `;
+
         interviewForm.addEventListener('submit', async (event) => {
           event.preventDefault();
-          const payload = Object.fromEntries(new FormData(event.target).entries());
-          payload.job_id = jobId;
-          await apiCall('client.php?action=interviews/schedule', 'POST', payload);
-          alert('Interview scheduled');
+          try {
+            const payload = Object.fromEntries(new FormData(event.target).entries());
+            payload.job_id = jobId;
+            await apiCall('client.php?action=interviews/schedule', 'POST', payload);
+            alert('Interview scheduled');
+            location.reload();
+          } catch (e) {
+            alert(e.message);
+          }
         });
       }
     });
-    async function clientAction(endpoint, body) {
-      await apiCall(endpoint, 'POST', body);
-      location.reload();
+    async function actionPost(endpoint, body) {
+      try {
+        await apiCall(endpoint, 'POST', body);
+        location.reload();
+      } catch (e) {
+        alert(e.message);
+      }
     }
     async function counterInterview(interviewId) {
-      const scheduledAt = prompt('Enter alternative datetime in format YYYY-MM-DD HH:MM:SS');
-      if (!scheduledAt) return;
-      const timezone = prompt('Enter timezone', 'UTC') || 'UTC';
-      await apiCall('project.php?action=interviews/respond', 'POST', { interview_id: interviewId, status: 'countered', scheduled_at: scheduledAt, timezone });
-      location.reload();
+      try {
+        const scheduledAt = prompt('Enter alternative datetime in format YYYY-MM-DD HH:MM:SS');
+        if (!scheduledAt) return;
+        const timezone = prompt('Enter timezone', 'UTC') || 'UTC';
+        await apiCall('project.php?action=interviews/respond', 'POST', { interview_id: interviewId, status: 'countered', scheduled_at: scheduledAt, timezone });
+        location.reload();
+      } catch (e) {
+        alert(e.message);
+      }
     }
   </script>
 </body>

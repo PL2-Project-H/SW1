@@ -91,10 +91,14 @@ class ClientController extends BaseController
 
     public function bids(): void
     {
-        $this->requireAuth('client');
+        $clientId = $this->requireAuth('client');
         $jobId = $this->queryInt('job_id', 1);
         if ($jobId === null) {
             Response::error('Query parameter job_id is required', 422);
+        }
+        $job = $this->jobs->getJob($jobId);
+        if (!$job || (int) $job['client_id'] !== $clientId) {
+            Response::error('Forbidden', 403);
         }
         Response::json($this->bidService->filterBids($jobId, [
             'min_success_rate' => $this->queryString('min_success_rate', 20),
@@ -112,8 +116,11 @@ class ClientController extends BaseController
             Response::error('Bid not found', 404);
         }
         $job = $this->jobs->getJob((int) $bid['job_id']);
-        if ((int) $job['client_id'] !== $clientId) {
+        if (!$job || (int) $job['client_id'] !== $clientId) {
             Response::error('Forbidden', 403);
+        }
+        if ($bid['status'] !== 'pending') {
+            Response::error('Bid is already ' . $bid['status'], 422);
         }
         $this->bids->updateStatus((int) $bid['id'], 'accepted');
         $contractId = $this->contracts->createContractFromBid($bid);
@@ -122,8 +129,19 @@ class ClientController extends BaseController
 
     public function rejectBid(array $data): void
     {
-        $this->requireAuth('client');
-        $this->bids->updateStatus($this->intField($data, 'bid_id', 1), 'rejected');
+        $clientId = $this->requireAuth('client');
+        $bid = $this->bids->find($this->intField($data, 'bid_id', 1));
+        if (!$bid) {
+            Response::error('Bid not found', 404);
+        }
+        $job = $this->jobs->getJob((int) $bid['job_id']);
+        if (!$job || (int) $job['client_id'] !== $clientId) {
+            Response::error('Forbidden', 403);
+        }
+        if ($bid['status'] !== 'pending') {
+            Response::error('Bid is already ' . $bid['status'], 422);
+        }
+        $this->bids->updateStatus((int) $bid['id'], 'rejected');
         Response::json(['message' => 'Bid rejected']);
     }
 
@@ -166,6 +184,7 @@ class ClientController extends BaseController
     public function interviews(): void
     {
         $clientId = $this->requireAuth('client');
-        Response::json($this->interviews->listForClient($clientId));
+        $jobId = $this->queryInt('job_id', 1);
+        Response::json($this->interviews->listForClient($clientId, $jobId));
     }
 }
