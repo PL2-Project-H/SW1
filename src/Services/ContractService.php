@@ -82,9 +82,13 @@ class ContractService
         if (!$job || (int) $job['client_id'] !== $clientId) {
             Response::error('Job not found', 404);
         }
-        $stmt = Database::getInstance()->getConnection()->prepare('SELECT * FROM ndas WHERE job_id = ? ORDER BY id DESC LIMIT 1');
-        $stmt->execute([$jobId]);
-        $nda = $stmt->fetch();
+        $contractStmt = Database::getInstance()->getConnection()->prepare('SELECT freelancer_id FROM contracts WHERE job_id = ? AND client_id = ? ORDER BY id DESC LIMIT 1');
+        $contractStmt->execute([$jobId, $clientId]);
+        $contract = $contractStmt->fetch();
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+        $nda = $this->contracts->getNdaForJob($jobId, (int) $contract['freelancer_id']);
         if (!$nda) {
             Response::error('NDA not found', 404);
         }

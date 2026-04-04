@@ -16,7 +16,8 @@ class EscrowController extends BaseController
 
     public function lock(array $data): void
     {
-        $this->requireAuth('client');
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('escrow/lock');
         $milestone = $this->milestones->getMilestone((int) $data['milestone_id']);
         $contract = $this->contracts->getContract((int) $milestone['contract_id']);
         Response::json(['id' => $this->escrow->lockFunds($contract, $milestone)]);
@@ -24,7 +25,8 @@ class EscrowController extends BaseController
 
     public function release(array $data): void
     {
-        $this->requireAuth('client');
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('escrow/release');
         $milestone = $this->milestones->getMilestone((int) $data['milestone_id']);
         $contract = $this->contracts->getContract((int) $milestone['contract_id']);
         Response::json(['id' => $this->escrow->releaseForMilestone($contract, $milestone)]);
@@ -32,7 +34,8 @@ class EscrowController extends BaseController
 
     public function partialRelease(array $data): void
     {
-        $this->requireAuth('client');
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('escrow/partial-release');
         $milestone = $this->milestones->getMilestone((int) $data['milestone_id']);
         $contract = $this->contracts->getContract((int) $milestone['contract_id']);
         Response::json(['id' => $this->escrow->partialRelease($contract, $milestone)]);
@@ -46,7 +49,8 @@ class EscrowController extends BaseController
 
     public function refund(array $data): void
     {
-        $this->requireAuth('client');
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('escrow/refund');
         $milestone = $this->milestones->getMilestone((int) $data['milestone_id']);
         $contract = $this->contracts->getContract((int) $milestone['contract_id']);
         $completionPercentage = isset($data['completion_percentage']) ? (float) $data['completion_percentage'] : null;

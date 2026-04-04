@@ -26,13 +26,21 @@ class CredentialVerificationService
         if (!$credential) {
             Response::error('Credential not found in review queue', 404);
         }
-        $this->freelancers->markCredentialUnderReview($credentialId, $adminId);
-        $this->audit->log($adminId, 'credential_under_review', 'credential', $credentialId, ['status' => $credential['status']], ['status' => 'under_review']);
-        $this->freelancers->updateCredentialStatus($credentialId, $decision, $adminId);
-        if ($decision === 'verified') {
-            $this->freelancers->setVerifiedFlag((int) $credential['freelancer_id'], true);
+        $pdo = Database::getInstance()->getConnection();
+        try {
+            $pdo->beginTransaction();
+            $this->freelancers->updateCredentialStatus($credentialId, $decision, $adminId);
+            if ($decision === 'verified') {
+                $this->freelancers->setVerifiedFlag((int) $credential['freelancer_id'], true);
+            }
+            $this->notifications->send((int) $credential['freelancer_id'], 'credential_status', 'Credential review updated to ' . $decision . '.');
+            $this->audit->log($adminId, 'credential_status_change', 'credential', $credentialId, ['status' => $credential['status']], ['status' => $decision]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
         }
-        $this->notifications->send((int) $credential['freelancer_id'], 'credential_status', 'Credential review updated to ' . $decision . '.');
-        $this->audit->log($adminId, 'credential_status_change', 'credential', $credentialId, ['status' => 'under_review'], ['status' => $decision]);
     }
 }

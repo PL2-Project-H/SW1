@@ -131,6 +131,45 @@ class ProjectController extends BaseController
         Response::json(['message' => 'Milestone marked complete']);
     }
 
+    public function submitRating(array $data): void
+    {
+        $userId = $this->requireAuth();
+        $contractId = $this->intField($data, 'contract_id', 1);
+        $ratedUserId = $this->intField($data, 'rated_user_id', 1);
+        $score = $this->intField($data, 'score', 1, 5);
+        $comment = $this->stringField($data, 'comment', 4000, false);
+
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+
+        $participants = [(int) $contract['client_id'], (int) $contract['freelancer_id']];
+        if (!in_array($userId, $participants, true)) {
+            Response::error('Forbidden', 403);
+        }
+        if (!in_array($ratedUserId, $participants, true) || $ratedUserId === $userId) {
+            Response::error('Rated user must be the other contract participant', 422);
+        }
+
+        $pdo = Database::getInstance()->getConnection();
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare('INSERT INTO ratings (contract_id, rated_user_id, score, comment) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$contractId, $ratedUserId, $score, $comment]);
+            $ratingId = (int) $pdo->lastInsertId();
+            (new ReputationService())->calculate($ratedUserId);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        Response::json(['id' => $ratingId]);
+    }
+
     public function respondInterview(array $data): void
     {
         $freelancerId = $this->requireAuth('freelancer');

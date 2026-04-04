@@ -136,7 +136,7 @@ class AdminController extends BaseController
         $freelancers = $this->freelancers->listFreelancers();
         foreach ($freelancers as $freelancer) {
             (new ReputationService())->calculate((int) $freelancer['id']);
-            $service->rankFreelancers($freelancer['niche'], explode(',', str_replace('_', ' ', $freelancer['niche'])), false);
+            $service->rankFreshAndPopulateCache($freelancer['niche'], explode(',', str_replace('_', ' ', $freelancer['niche'])), false);
         }
         Response::json(['message' => 'Search cache rebuilt', 'count' => count($freelancers)]);
     }

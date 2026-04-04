@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (milestoneId) {
     try {
       const milestone = await apiCall(`project.php?action=milestones/${milestoneId}`);
-      setTimeout(() => renderMilestoneDetail(milestone, user), 50);
+      await renderMilestoneDetail(milestone, user);
     } catch (e) {
       console.error('Failed to load milestone detail', e);
     }

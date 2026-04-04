@@ -114,9 +114,6 @@ class AuthService
 
     public function kycCheck(array $data): string
     {
-        if (!empty($data['id_type']) && !empty($data['country']) && !empty($data['name'])) {
-            return 'submitted';
-        }
         return 'unverified';
     }
 

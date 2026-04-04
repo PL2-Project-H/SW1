@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkSession();
   const resultBox = qs('job-results');
+  const specialistBox = qs('specialist-results');
   const filters = ['search_keyword', 'search_niche', 'search_budget'];
 
   const runSearch = debounce(async () => {
@@ -10,17 +11,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         keyword: qs('search_keyword').value,
         max_budget: qs('search_budget').value
       });
-      const rankingQuery = new URLSearchParams({
-        niche: qs('search_niche').value || 'other',
-        keywords: qs('search_keyword').value
-      });
-      const [ranked, jobs] = await Promise.all([
-        apiCall(`freelancer.php?action=search&${rankingQuery.toString()}`),
-        apiCall(`client.php?action=jobs/browse&${query.toString()}`)
-      ]);
+      const jobs = await apiCall(`client.php?action=jobs/browse&${query.toString()}`);
       resultBox.innerHTML =
         jobs
-          .map((job) => renderJob(job, ranked))
+          .map((job) => renderJob(job))
           .join('') || empty();
     } else if (user.role === 'client') {
       const query = new URLSearchParams({
@@ -56,14 +50,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     qs('search-panel').classList.remove('hidden');
   }
+
+  if (user.role === 'freelancer') {
+    qs('specialist-search-actions').innerHTML = '<button id="find-specialists-btn" type="button" class="rounded-2xl bg-slate-900 px-4 py-3 text-white">Find Specialists</button>';
+    qs('find-specialists-btn')?.addEventListener('click', async () => {
+      const rankingQuery = new URLSearchParams({
+        niche: qs('search_niche').value || 'other',
+        keywords: qs('search_keyword').value
+      });
+      const ranked = await apiCall(`freelancer.php?action=search&${rankingQuery.toString()}`);
+      specialistBox.classList.remove('hidden');
+      specialistBox.innerHTML = ranked.map((freelancer) => renderSpecialist(freelancer)).join('') || emptySpecialists();
+    });
+  }
 });
 
-function renderJob(job, ranked) {
-  const matches = ranked.slice(0, 3).map((row) => row.name).join(', ');
+function renderJob(job) {
   return `<a href="job-detail.html?job_id=${job.id}" class="glass block rounded-3xl border p-5">
     <div class="flex items-center justify-between"><h3 class="text-xl font-semibold">${job.title}</h3><span class="badge badge-info">${job.niche}</span></div>
     <p class="mt-3 text-sm text-slate-600">${job.description}</p>
-    <div class="mt-4 flex items-center justify-between text-sm text-slate-500"><span>$${job.budget} ${job.currency || 'USD'}</span><span>Suggested specialists: ${matches || 'Run search'}</span></div>
+    <div class="mt-4 text-sm text-slate-500">$${job.budget} ${job.currency || 'USD'}</div>
   </a>`;
 }
 
@@ -93,4 +99,19 @@ function toggleNicheFields() {
 
 function empty() {
   return '<div class="rounded-3xl border border-dashed p-8 text-center text-slate-500">No results found.</div>';
+}
+
+function emptySpecialists() {
+  return '<div class="glass rounded-3xl border border-dashed p-8 text-center text-slate-500">No specialists found.</div>';
+}
+
+function renderSpecialist(freelancer) {
+  return `<article class="glass rounded-3xl border p-5">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-semibold">${freelancer.name}</h3>
+      <span class="badge badge-info">${freelancer.niche}</span>
+    </div>
+    <p class="mt-3 text-sm text-slate-600">${freelancer.bio || 'No bio provided.'}</p>
+    <div class="mt-4 text-sm text-slate-500">Score: ${freelancer.score} · Rate: $${freelancer.hourly_rate || 0}/hr</div>
+  </article>`;
 }

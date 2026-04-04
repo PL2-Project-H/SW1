@@ -22,7 +22,7 @@ class MilestoneService
     public function buildMilestones(int $contractId, array $items): array
     {
         $contract = $this->contracts->getContract($contractId);
-        
+
         $sum = 0;
         foreach ($items as $item) {
             $sum += (float) ($item['amount'] ?? 0);
@@ -31,20 +31,29 @@ class MilestoneService
             Response::error('Milestone amounts must sum to contract total amount: ' . $contract['total_amount'], 422);
         }
 
+        $pdo = Database::getInstance()->getConnection();
         $created = [];
         $index = 1;
-        foreach ($items as $item) {
-            $created[] = $this->milestones->createMilestone([
-                'contract_id' => $contractId,
-                'title' => $item['title'],
-                'amount' => $item['amount'],
-                'order_index' => $item['order_index'] ?? $index++,
-                'due_date' => $item['due_date'],
-                'dependency_milestone_id' => $item['dependency_milestone_id'] ?? null,
-            ]);
+        try {
+            $pdo->beginTransaction();
+            foreach ($items as $item) {
+                $created[] = $this->milestones->createMilestone([
+                    'contract_id' => $contractId,
+                    'title' => $item['title'],
+                    'amount' => $item['amount'],
+                    'order_index' => $item['order_index'] ?? $index++,
+                    'due_date' => $item['due_date'],
+                    'dependency_milestone_id' => $item['dependency_milestone_id'] ?? null,
+                ]);
+            }
+            $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'milestones_built', 'contract', $contractId, null, ['count' => count($created), 'contract_total' => $contract['total_amount']]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
         }
-        $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'milestones_built', 'contract', $contractId, null, ['count' => count($created), 'contract_total' => $contract['total_amount']]);
-        (new ContractService())->validateMilestoneTotals($contractId);
 
         return $created;
     }
@@ -86,8 +95,12 @@ class MilestoneService
 
     public function handleDeliverable(int $milestoneId, string $filePath): int
     {
+        $milestone = $this->milestones->getMilestone($milestoneId);
+        if (($milestone['status'] ?? null) !== 'in_progress') {
+            Response::error('Milestone must be in progress before submitting deliverable', 422);
+        }
         $this->enforceQaChecklist($milestoneId);
-        $contractId = (int) $this->milestones->getMilestone($milestoneId)['contract_id'];
+        $contractId = (int) $milestone['contract_id'];
         $contract = $this->contracts->getContract($contractId);
         $deliverableId = $this->milestones->createDeliverable($milestoneId, $filePath, (int) $contract['free_revisions_per_milestone']);
         $this->milestones->updateStatus($milestoneId, 'submitted');

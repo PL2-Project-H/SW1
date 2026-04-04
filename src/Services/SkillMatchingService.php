@@ -56,7 +56,7 @@ class SkillMatchingService
         return $results;
     }
 
-    private function rankFreshAndPopulateCache(string $niche, array $keywords, bool $certificationRequired): array
+    public function rankFreshAndPopulateCache(string $niche, array $keywords, bool $certificationRequired): array
     {
         $pdo = $this->database->getConnection();
         $freelancers = $this->freelancers->listFreelancers();

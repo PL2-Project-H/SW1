@@ -29,6 +29,7 @@ match ($action) {
     'interviews/respond' => $controller->respondInterview($body),
     'contracts/active' => $controller->activeContracts(),
     'contracts/nda/sign' => $controller->signNda($body),
+    'contracts/rate' => $controller->submitRating($body),
     'contracts/amend' => $controller->amend($body),
     'contracts/amend/respond' => $controller->respondAmendment($body),
     'contracts/milestones/build' => $controller->buildMilestones($body),
