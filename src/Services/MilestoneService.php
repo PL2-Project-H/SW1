@@ -44,6 +44,8 @@ class MilestoneService
             ]);
         }
         $this->audit->log((int) ($_SESSION['user_id'] ?? null), 'milestones_built', 'contract', $contractId, null, ['count' => count($created), 'contract_total' => $contract['total_amount']]);
+        (new ContractService())->validateMilestoneTotals($contractId);
+
         return $created;
     }
 

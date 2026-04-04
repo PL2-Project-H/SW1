@@ -13,6 +13,29 @@
     <div class="space-y-8">
       <section><h2 class="mb-4 text-2xl font-semibold">Dashboard</h2><div id="admin-dashboard" class="grid gap-4 md:grid-cols-3"></div></section>
       <section><h2 class="mb-4 text-2xl font-semibold">Users</h2><div id="users-table" class="grid gap-3"></div></section>
+      <section class="glass rounded-3xl border p-6">
+        <h2 class="mb-4 text-2xl font-semibold">User moderation</h2>
+        <p class="mb-4 text-sm text-slate-600">Flag or sanction by user ID (tech support / mediator roles).</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <form id="flag-user-form" class="space-y-3 rounded-2xl border p-4">
+            <h3 class="font-semibold">Flag user</h3>
+            <input name="user_id" type="number" min="1" class="w-full rounded-xl border px-3 py-2" placeholder="User ID" required>
+            <input name="reason" class="w-full rounded-xl border px-3 py-2" placeholder="Reason" required>
+            <button type="submit" class="w-full rounded-xl bg-amber-600 px-4 py-2 text-white">Submit flag</button>
+          </form>
+          <form id="sanction-user-form" class="space-y-3 rounded-2xl border p-4">
+            <h3 class="font-semibold">Sanction user</h3>
+            <input name="user_id" type="number" min="1" class="w-full rounded-xl border px-3 py-2" placeholder="User ID" required>
+            <select name="level" class="w-full rounded-xl border px-3 py-2" required>
+              <option value="warn">Warning</option>
+              <option value="limit">Limited access</option>
+              <option value="ban">Permanent ban</option>
+            </select>
+            <input name="reason" class="w-full rounded-xl border px-3 py-2" placeholder="Reason" required>
+            <button type="submit" class="w-full rounded-xl bg-rose-700 px-4 py-2 text-white">Apply sanction</button>
+          </form>
+        </div>
+      </section>
       <section><h2 class="mb-4 text-2xl font-semibold">Credentials Queue</h2><div id="credentials-table" class="grid gap-3"></div></section>
       <section><h2 class="mb-4 text-2xl font-semibold">KYC Queue</h2><div id="kyc-table" class="grid gap-3"></div></section>
       <section><h2 class="mb-4 text-2xl font-semibold">Disputes</h2><div id="dispute-table" class="grid gap-3"></div></section>

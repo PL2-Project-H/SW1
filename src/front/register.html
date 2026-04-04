@@ -209,10 +209,19 @@
     const freelancerFields = document.getElementById('freelancer-fields');
     const adminFields = document.getElementById('admin-fields');
 
+    function setSectionDisabled(container, disabled) {
+      if (!container) return;
+      container.querySelectorAll('input, select, textarea').forEach((el) => {
+        el.disabled = disabled;
+      });
+    }
+
     function toggleFields() {
       const val = roleSelect.value;
       freelancerFields.classList.toggle('hidden', val !== 'freelancer');
       adminFields.classList.toggle('hidden', val !== 'admin');
+      setSectionDisabled(freelancerFields, val !== 'freelancer');
+      setSectionDisabled(adminFields, val !== 'admin');
     }
 
     roleSelect.addEventListener('change', toggleFields);

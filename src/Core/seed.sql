@@ -109,27 +109,27 @@ INSERT INTO freelancer_skills (freelancer_id, skill_id) VALUES
 (5, 21), (5, 27), (13, 23), (21, 24), (21, 28), (25, 21), (30, 25), (35, 26);
 
 -- 4. Job Posts (20 Total)
-INSERT INTO job_posts (id, client_id, title, description, niche, budget, deadline, status, visibility) VALUES
-(1, 2, 'Patent Application for AI', 'Complex neural network architecture patenting.', 'legal', 3000.00, '2026-06-01 00:00:00', 'open', 'public'),
-(2, 2, 'Churn Prediction Model', 'Retail user behavior analysis.', 'data_science', 4500.00, '2026-05-15 00:00:00', 'awarded', 'public'),
-(3, 8, 'BI Dashboard for Fund', 'Investment tracking visualizer.', 'data_science', 3500.00, '2026-06-10 00:00:00', 'open', 'public'),
-(4, 8, 'Translate Engineering Manual', 'German to English 300 pages.', 'translation', 2500.00, '2026-05-20 00:00:00', 'open', 'public'),
-(5, 9, 'Venture Round Docs', 'Series B documentation pack.', 'legal', 6000.00, '2026-07-01 00:00:00', 'open', 'public'),
-(6, 9, 'Fraud Alert System', 'Real-time transaction scoring.', 'data_science', 9000.00, '2026-08-15 00:00:00', 'open', 'public'),
-(7, 15, 'Australian Labor Review', 'Review NY vs Sydney laws.', 'legal', 1800.00, '2026-05-05 00:00:00', 'open', 'public'),
-(8, 15, 'RecSys for Fashion', 'Collaborative filtering API.', 'data_science', 4000.00, '2026-06-25 00:00:00', 'open', 'public'),
-(9, 17, 'Legal Russian Translation', 'Court case documents.', 'translation', 1600.00, '2026-05-30 00:00:00', 'open', 'public'),
-(10, 17, 'NLP Chatbot for HR', 'Employee FAQ automation.', 'data_science', 6500.00, '2026-07-20 00:00:00', 'open', 'public'),
-(11, 22, 'SaaS Global Privacy', 'Privacy policy for 5 regions.', 'legal', 1400.00, '2026-04-25 00:00:00', 'open', 'public'),
-(12, 22, 'Menu Translation DE/IT', 'Luxury resort content.', 'translation', 400.00, '2026-04-20 00:00:00', 'open', 'public'),
-(13, 26, 'LSTM Market Forecast', 'Crypto price prediction.', 'data_science', 5000.00, '2026-06-05 00:00:00', 'open', 'public'),
-(14, 26, 'Localize Pitch Deck', 'Mandarin business pack.', 'translation', 1000.00, '2026-05-10 00:00:00', 'open', 'public'),
-(15, 31, 'NY Handbook Audit', 'NY labor law check.', 'legal', 1200.00, '2026-05-15 00:00:00', 'open', 'public'),
-(16, 31, 'Healthcare Analytics', 'Outcome prediction model.', 'data_science', 8000.00, '2026-08-01 00:00:00', 'open', 'public'),
-(17, 36, 'Adham Admin Project', 'Private internal audit.', 'legal', 5000.00, '2026-09-01 00:00:00', 'open', 'public'),
-(18, 36, 'Data Visualization Task', 'Visualizing admin logs.', 'data_science', 3000.00, '2026-09-15 00:00:00', 'open', 'public'),
-(19, 2, 'Confidential Dispute Case', 'Secret legal review.', 'legal', 2000.00, '2026-04-30 00:00:00', 'open', 'invitation'),
-(20, 8, 'Scraping Project', 'Global store price scraper.', 'data_science', 2500.00, '2026-05-30 00:00:00', 'open', 'public');
+INSERT INTO job_posts (id, client_id, title, description, niche, budget, deadline, status, visibility, currency) VALUES
+(1, 2, 'Patent Application for AI', 'Complex neural network architecture patenting.', 'legal', 3000.00, '2026-06-01 00:00:00', 'open', 'public', 'USD'),
+(2, 2, 'Churn Prediction Model', 'Retail user behavior analysis.', 'data_science', 4500.00, '2026-05-15 00:00:00', 'awarded', 'public', 'USD'),
+(3, 8, 'BI Dashboard for Fund', 'Investment tracking visualizer.', 'data_science', 3500.00, '2026-06-10 00:00:00', 'open', 'public', 'EUR'),
+(4, 8, 'Translate Engineering Manual', 'German to English 300 pages.', 'translation', 2500.00, '2026-05-20 00:00:00', 'open', 'public', 'GBP'),
+(5, 9, 'Venture Round Docs', 'Series B documentation pack.', 'legal', 6000.00, '2026-07-01 00:00:00', 'open', 'public', 'USD'),
+(6, 9, 'Fraud Alert System', 'Real-time transaction scoring.', 'data_science', 9000.00, '2026-08-15 00:00:00', 'open', 'public', 'USD'),
+(7, 15, 'Australian Labor Review', 'Review NY vs Sydney laws.', 'legal', 1800.00, '2026-05-05 00:00:00', 'open', 'public', 'USD'),
+(8, 15, 'RecSys for Fashion', 'Collaborative filtering API.', 'data_science', 4000.00, '2026-06-25 00:00:00', 'open', 'public', 'EUR'),
+(9, 17, 'Legal Russian Translation', 'Court case documents.', 'translation', 1600.00, '2026-05-30 00:00:00', 'open', 'public', 'USD'),
+(10, 17, 'NLP Chatbot for HR', 'Employee FAQ automation.', 'data_science', 6500.00, '2026-07-20 00:00:00', 'open', 'public', 'USD'),
+(11, 22, 'SaaS Global Privacy', 'Privacy policy for 5 regions.', 'legal', 1400.00, '2026-04-25 00:00:00', 'open', 'public', 'GBP'),
+(12, 22, 'Menu Translation DE/IT', 'Luxury resort content.', 'translation', 400.00, '2026-04-20 00:00:00', 'open', 'public', 'EUR'),
+(13, 26, 'LSTM Market Forecast', 'Crypto price prediction.', 'data_science', 5000.00, '2026-06-05 00:00:00', 'open', 'public', 'USD'),
+(14, 26, 'Localize Pitch Deck', 'Mandarin business pack.', 'translation', 1000.00, '2026-05-10 00:00:00', 'open', 'public', 'USD'),
+(15, 31, 'NY Handbook Audit', 'NY labor law check.', 'legal', 1200.00, '2026-05-15 00:00:00', 'open', 'public', 'USD'),
+(16, 31, 'Healthcare Analytics', 'Outcome prediction model.', 'data_science', 8000.00, '2026-08-01 00:00:00', 'open', 'public', 'USD'),
+(17, 36, 'Adham Admin Project', 'Private internal audit.', 'legal', 5000.00, '2026-09-01 00:00:00', 'open', 'public', 'USD'),
+(18, 36, 'Data Visualization Task', 'Visualizing admin logs.', 'data_science', 3000.00, '2026-09-15 00:00:00', 'open', 'public', 'USD'),
+(19, 2, 'Confidential Dispute Case', 'Secret legal review.', 'legal', 2000.00, '2026-04-30 00:00:00', 'open', 'invitation', 'USD'),
+(20, 8, 'Scraping Project', 'Global store price scraper.', 'data_science', 2500.00, '2026-05-30 00:00:00', 'open', 'public', 'USD');
 
 -- 5. Contracts & 5X Milestones (15 Contracts)
 INSERT INTO contracts (id, job_id, client_id, freelancer_id, total_amount, status, scope_text) VALUES

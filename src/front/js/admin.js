@@ -93,6 +93,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   qs('archive-refresh')?.addEventListener('click', loadArchivedMessages);
+
+  qs('flag-user-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!['tech_support', 'dispute_mediator'].includes(role)) {
+      alert('Your admin role cannot flag users.');
+      return;
+    }
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await apiCall('admin.php?action=users/flag', 'POST', data);
+      alert('User flagged.');
+      e.target.reset();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  qs('sanction-user-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!['tech_support', 'dispute_mediator'].includes(role)) {
+      alert('Your admin role cannot sanction users.');
+      return;
+    }
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await apiCall('admin.php?action=users/sanction', 'POST', data);
+      alert('Sanction applied.');
+      e.target.reset();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
 });
 
 async function reviewCredential(id, decision) {

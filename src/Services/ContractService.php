@@ -38,12 +38,16 @@ class ContractService
         return $ndaId;
     }
 
-    public function createContractFromBid(array $bid): int
+    public function createContractFromBid(array $bid, array $options = []): int
     {
         $job = $this->jobs->getJob((int) $bid['job_id']);
         $nda = $this->contracts->getNdaForJob((int) $bid['job_id'], (int) $bid['freelancer_id']);
         if (!$nda) {
             $this->generateNda((int) $bid['job_id'], (int) $bid['freelancer_id']);
+        }
+        $currency = $options['currency'] ?? ($job['currency'] ?? 'USD');
+        if (!in_array($currency, ['USD', 'EUR', 'GBP'], true)) {
+            $currency = 'USD';
         }
         $contractId = $this->contracts->createContract([
             'job_id' => $bid['job_id'],
@@ -51,6 +55,8 @@ class ContractService
             'freelancer_id' => $bid['freelancer_id'],
             'total_amount' => $bid['amount'],
             'scope_text' => $job['description'],
+            'partial_release_pct' => (int) ($options['partial_release_pct'] ?? 0),
+            'currency' => $currency,
         ]);
         $this->jobs->markAwarded((int) $bid['job_id']);
         $this->audit->log((int) $job['client_id'], 'contract_created', 'contract', $contractId, null, ['bid_id' => $bid['id']]);

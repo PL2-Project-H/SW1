@@ -6,7 +6,7 @@ class JobRepository extends BaseRepository
     {
         $status = ($data['visibility'] ?? 'public') === 'invitation' ? 'private' : 'open';
         return $this->insert(
-            'INSERT INTO job_posts (client_id, title, description, niche, budget, deadline, status, visibility, niche_metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO job_posts (client_id, title, description, niche, budget, deadline, status, visibility, niche_metadata, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 $clientId,
                 $data['title'],
@@ -17,6 +17,7 @@ class JobRepository extends BaseRepository
                 $status,
                 $data['visibility'] ?? 'public',
                 json_encode($data['niche_metadata'] ?? []),
+                $data['currency'] ?? 'USD',
             ]
         );
     }

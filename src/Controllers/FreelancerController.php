@@ -141,7 +141,12 @@ class FreelancerController extends BaseController
 
     public function availability(): void
     {
-        $userId = (int) ($_GET['freelancer_id'] ?? $this->requireAuth('freelancer'));
+        $param = $_GET['freelancer_id'] ?? null;
+        if ($param !== null && $param !== '') {
+            $userId = (int) $param;
+        } else {
+            $userId = $this->requireAuth('freelancer');
+        }
         Response::json($this->syncAvailability($userId));
     }
 
@@ -220,7 +225,13 @@ class FreelancerController extends BaseController
 
     public function reputation(): void
     {
-        $userId = (int) ($_GET['freelancer_id'] ?? $this->requireAuth('freelancer'));
+        $param = $_GET['freelancer_id'] ?? null;
+        if ($param !== null && $param !== '') {
+            $this->requireAuth();
+            $userId = (int) $param;
+        } else {
+            $userId = $this->requireAuth('freelancer');
+        }
         Response::json((new ReputationService())->calculate($userId));
     }
 }

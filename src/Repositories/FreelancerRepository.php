@@ -156,6 +156,23 @@ class FreelancerRepository extends BaseRepository
         return $this->fetchAllRows('SELECT * FROM search_cache');
     }
 
+    public function listSearchCacheByNiche(string $niche): array
+    {
+        return $this->fetchAllRows(
+            'SELECT sc.freelancer_id AS id, sc.niche, sc.keyword_blob, sc.skills_blob, sc.completed_projects,
+                    sc.reputation_score, sc.score AS cached_score, u.name, u.country, u.timezone,
+                    fp.bio, fp.is_verified, fp.hourly_rate, fp.digest_opt_in,
+                    COALESCE(rs.composite_score, 0) AS composite_score
+             FROM search_cache sc
+             INNER JOIN users u ON u.id = sc.freelancer_id
+             INNER JOIN freelancer_profiles fp ON fp.user_id = u.id
+             LEFT JOIN reputation_scores rs ON rs.user_id = u.id
+             WHERE sc.niche = ? AND u.role = "freelancer" AND u.status = "active"
+             ORDER BY sc.score DESC',
+            [$niche]
+        );
+    }
+
     public function upsertSearchCache(int $freelancerId, string $niche, string $keywords, string $skills, int $completedProjects, float $reputationScore, float $score): void
     {
         $existing = $this->fetch('SELECT id FROM search_cache WHERE freelancer_id = ?', [$freelancerId]);

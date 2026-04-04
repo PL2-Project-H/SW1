@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS job_posts (
     status ENUM('open', 'private', 'closed', 'awarded') NOT NULL DEFAULT 'open',
     visibility ENUM('public', 'invitation') NOT NULL DEFAULT 'public',
     niche_metadata JSON DEFAULT NULL,
+    currency ENUM('USD', 'EUR', 'GBP') NOT NULL DEFAULT 'USD',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_job_niche (niche),

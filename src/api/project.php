@@ -16,6 +16,11 @@ if (preg_match('#^milestones/(\d+)$#', $action, $matches)) {
     exit;
 }
 
+if (preg_match('#^contracts/(\d+)/messages$#', $action, $matches)) {
+    $controller->contractMessages((int) $matches[1]);
+    exit;
+}
+
 match ($action) {
     'bids/submit' => $controller->submitBid($body),
     'bids/withdraw' => $controller->withdrawBid($body),
@@ -36,5 +41,6 @@ match ($action) {
     'milestones/snapshot' => $controller->createSnapshot(),
     'contracts/qa-checklist' => $controller->qaChecklist(),
     'contracts/qa-checklist/submit' => $controller->submitChecklist($body),
+    'contracts/message' => $controller->sendContractMessage($body),
     default => Response::error('Unknown action', 404),
 };

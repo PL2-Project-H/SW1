@@ -48,19 +48,24 @@
         const interviews = await apiCall(`project.php?action=interviews/mine&job_id=${jobId}`);
         document.getElementById('interview-list').innerHTML = `
           <h2 class="text-2xl font-semibold mb-4">Your Interviews</h2>
-          ${interviews.map((interview) => `
-            <div class="rounded-2xl border p-4 mb-3">
-              <div class="font-semibold">Interview #${interview.id}</div>
-              <div class="text-sm text-slate-500">${interview.scheduled_at} ${interview.timezone} | Status: <span class="font-bold">${interview.status}</span></div>
-              ${interview.status === 'pending' || (interview.status === 'countered' && interview.proposed_by != user.id) ? `
-                <div class="mt-3 flex gap-2">
+          ${interviews.map((interview) => {
+            let actions = '';
+            if (interview.status === 'pending') {
+              actions = `<div class="mt-3 flex gap-2">
                   <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'accepted'})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
                   <button onclick="counterInterview(${interview.id})" class="rounded bg-amber-500 px-3 py-2 text-sm text-white">Counter</button>
                   <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'canceled'})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Decline</button>
-                </div>
-              ` : ''}
-            </div>
-          `).join('') || '<p class="text-slate-500">No interviews scheduled.</p>'}
+                </div>`;
+            } else if (interview.status === 'countered') {
+              actions = `<p class="mt-2 text-sm text-amber-700">You proposed a new time: ${interview.counter_scheduled_at || '—'} (${interview.counter_timezone || 'UTC'}). Waiting for the client to confirm.</p>`;
+            }
+            return `
+            <div class="rounded-2xl border p-4 mb-3">
+              <div class="font-semibold">Interview #${interview.id}</div>
+              <div class="text-sm text-slate-500">Offered: ${interview.scheduled_at} ${interview.timezone} | Status: <span class="font-bold">${interview.status}</span></div>
+              ${actions}
+            </div>`;
+          }).join('') || '<p class="text-slate-500">No interviews scheduled.</p>'}
         `;
         bidForm.addEventListener('submit', async (event) => {
           event.preventDefault();
@@ -95,7 +100,7 @@
               <div class="text-sm text-slate-500 mt-1">${bid.proposal_text}</div>
               ${bid.status === 'pending' ? `
                 <div class="mt-3 flex gap-2">
-                  <button onclick="actionPost('client.php?action=bids/accept',{bid_id:${bid.id}})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
+                  <button onclick="acceptBidWithOptions(${bid.id})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
                   <button onclick="actionPost('client.php?action=bids/reject',{bid_id:${bid.id}})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Reject</button>
                 </div>
               ` : ''}
@@ -120,7 +125,11 @@
           ${interviews.map(i => `
             <div class="rounded-2xl border p-4 mb-3">
               <div class="font-semibold">Freelancer ID: ${i.freelancer_id}</div>
-              <div class="text-sm text-slate-500">${i.scheduled_at} ${i.timezone} | <span class="font-bold">${i.status}</span></div>
+              <div class="text-sm text-slate-500">Current slot: ${i.scheduled_at} ${i.timezone} | <span class="font-bold">${i.status}</span></div>
+              ${i.status === 'countered' && i.counter_scheduled_at ? `
+                <div class="mt-2 text-sm text-amber-800">Freelancer proposed: ${i.counter_scheduled_at} (${i.counter_timezone || 'UTC'})</div>
+                <button onclick="actionPost('client.php?action=interviews/accept-counter',{interview_id:${i.id}})" class="mt-2 rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept freelancer time</button>
+              ` : ''}
             </div>
           `).join('') || '<p class="text-slate-500">No interviews scheduled yet.</p>'}
         `;
@@ -142,6 +151,17 @@
     async function actionPost(endpoint, body) {
       try {
         await apiCall(endpoint, 'POST', body);
+        location.reload();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+    async function acceptBidWithOptions(bidId) {
+      const pctRaw = window.prompt('Partial escrow release on deliverable submit (0–100; 0 = none)', '0');
+      if (pctRaw === null) return;
+      const partial_release_pct = Math.max(0, Math.min(100, parseInt(pctRaw, 10) || 0));
+      try {
+        await apiCall('client.php?action=bids/accept', 'POST', { bid_id: bidId, partial_release_pct });
         location.reload();
       } catch (e) {
         alert(e.message);

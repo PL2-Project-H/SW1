@@ -99,16 +99,16 @@ class DisputeRepository extends BaseRepository
             if ($search === '') {
                 return true;
             }
-            $decoded = base64_decode((string) $row['message'], true);
-            $plain = $decoded !== false ? $decoded : (string) $row['message'];
+            $plain = AuditService::decodeArchivedMessage((string) $row['message']);
+
             return str_contains(strtolower($plain), strtolower($search));
         }));
 
         $total = count($rows);
         $slice = array_slice($rows, $offset, $limit);
         $slice = array_map(function ($row) {
-            $decoded = base64_decode((string) $row['message'], true);
-            $row['decoded_message'] = $decoded !== false ? $decoded : (string) $row['message'];
+            $row['decoded_message'] = AuditService::decodeArchivedMessage((string) $row['message']);
+
             return $row;
         }, $slice);
 

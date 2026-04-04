@@ -64,4 +64,18 @@ class InterviewRepository extends BaseRepository
             [$status, $notes, $interviewId, $freelancerId]
         );
     }
+
+    public function clientAcceptFreelancerCounter(int $interviewId, int $clientId): void
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE interviews SET status = "accepted",
+                scheduled_at = COALESCE(counter_scheduled_at, scheduled_at),
+                timezone = COALESCE(counter_timezone, timezone)
+             WHERE id = ? AND client_id = ? AND status = "countered"'
+        );
+        $stmt->execute([$interviewId, $clientId]);
+        if ($stmt->rowCount() < 1) {
+            Response::error('Interview not found or not awaiting client confirmation', 422);
+        }
+    }
 }

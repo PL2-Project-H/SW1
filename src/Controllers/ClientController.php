@@ -43,6 +43,7 @@ class ClientController extends BaseController
                 'confidentiality_required' => $this->boolField($data, 'confidentiality_required'),
             ];
         }
+        $currency = $this->enumField($data, 'currency', ['USD', 'EUR', 'GBP'], false) ?? 'USD';
         $jobId = $this->jobs->createJob($clientId, array_merge($data, [
             'title' => $this->stringField($data, 'title', 190),
             'description' => $this->stringField($data, 'description', 4000),
@@ -51,6 +52,7 @@ class ClientController extends BaseController
             'deadline' => $this->dateTimeField($data, 'deadline'),
             'visibility' => $visibility,
             'niche_metadata' => $metadata,
+            'currency' => $currency,
         ]));
         if ($visibility === 'invitation' && !empty($data['invitees'])) {
             $this->createPrivateJob($jobId, $this->stringField($data, 'invitees', 1000));
@@ -123,7 +125,12 @@ class ClientController extends BaseController
             Response::error('Bid is already ' . $bid['status'], 422);
         }
         $this->bids->updateStatus((int) $bid['id'], 'accepted');
-        $contractId = $this->contracts->createContractFromBid($bid);
+        $partialPct = isset($data['partial_release_pct']) ? (int) $data['partial_release_pct'] : 0;
+        $partialPct = max(0, min(100, $partialPct));
+        $contractId = $this->contracts->createContractFromBid($bid, [
+            'partial_release_pct' => $partialPct,
+            'currency' => $job['currency'] ?? 'USD',
+        ]);
         Response::json(['contract_id' => $contractId]);
     }
 
@@ -186,5 +193,12 @@ class ClientController extends BaseController
         $clientId = $this->requireAuth('client');
         $jobId = $this->queryInt('job_id', 1);
         Response::json($this->interviews->listForClient($clientId, $jobId));
+    }
+
+    public function acceptInterviewCounter(array $data): void
+    {
+        $clientId = $this->requireAuth('client');
+        $this->interviews->clientAcceptFreelancerCounter($this->intField($data, 'interview_id', 1), $clientId);
+        Response::json(['message' => 'Interview time confirmed']);
     }
 }

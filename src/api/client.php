@@ -18,5 +18,6 @@ match ($action) {
     'interviews' => $controller->interviews(),
     'interviews/schedule' => $controller->scheduleInterview($body),
     'interviews/update' => $controller->updateInterview($body),
+    'interviews/accept-counter' => $controller->acceptInterviewCounter($body),
     default => Response::error('Unknown action', 404),
 };

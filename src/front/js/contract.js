@@ -16,6 +16,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const contracts = contractId ? [await apiCall(`project.php?action=contracts/${contractId}`)] : await apiCall('project.php?action=contracts/active');
   qs('contract-list').innerHTML = contracts.map((contract) => renderContract(contract, user)).join('') || '<p class="text-slate-500">No active contracts.</p>';
 
+  if (contractId && user.role !== 'admin') {
+    const wrap = qs('contract-messages-wrap');
+    wrap.classList.remove('hidden');
+    await loadContractMessages(contractId);
+    qs('contract-message-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = qs('contract_message_input').value.trim();
+      if (!text) return;
+      await apiCall('project.php?action=contracts/message', 'POST', { contract_id: Number(contractId), message: text });
+      qs('contract_message_input').value = '';
+      await loadContractMessages(contractId);
+    });
+  }
+
   qs('milestone-build-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     await apiCall('project.php?action=contracts/milestones/build', 'POST', {
@@ -26,14 +40,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+async function loadContractMessages(contractId) {
+  try {
+    const messages = await apiCall(`project.php?action=contracts/${contractId}/messages`);
+    qs('contract-message-list').innerHTML = messages
+      .map((m) => `<div class="rounded-xl border p-2"><span class="font-medium">${escapeHtml(m.sender_name)}</span> <span class="text-slate-500">${m.sent_at}</span><div>${escapeHtml(m.message)}</div></div>`)
+      .join('') || '<p class="text-slate-500">No messages yet.</p>';
+  } catch (e) {
+    qs('contract-message-list').innerHTML = `<p class="text-rose-600">${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 async function renderMilestoneDetail(milestone, user) {
   const detail = document.getElementById('milestone-detail');
   if (!detail) {
-     console.error('milestone-detail element not found');
-     return;
+    console.error('milestone-detail element not found');
+    return;
   }
   detail.classList.remove('hidden');
-  
+
   let actions = '';
   if (user.role === 'freelancer' && milestone.status === 'in_progress') {
     const checklist = await apiCall('project.php?action=contracts/qa-checklist');
@@ -88,21 +119,42 @@ async function renderMilestoneDetail(milestone, user) {
 
 function renderContract(contract, user) {
   const milestones = contract.milestones || [];
+  const amendments = contract.amendments || [];
   const ndaActions = contract.status === 'pending_nda' ? `
     <div class="mt-4 flex flex-wrap gap-2">
       ${user.role === 'client' ? `<button onclick="actionPost('client.php?action=contracts/nda/sign',{job_id:${contract.job_id}})" class="rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white">Client Sign NDA</button>` : ''}
       ${user.role === 'freelancer' ? `<button onclick="actionPost('project.php?action=contracts/nda/sign',{job_id:${contract.job_id}})" class="rounded-lg bg-indigo-800 px-3 py-2 text-sm text-white">Freelancer Sign NDA</button>` : ''}
     </div>
   ` : '';
+
+  const amendBlock =
+    user.role === 'client' || user.role === 'freelancer'
+      ? `
+    <div class="mt-6 rounded-2xl border border-dashed p-4">
+      <h4 class="font-semibold">Scope amendments</h4>
+      <ul class="mt-2 space-y-2 text-sm">${amendments.map((a) => `<li>#${a.id} ${a.status} — ${escapeHtml(a.change_description || '').slice(0, 120)}${(a.change_description || '').length > 120 ? '…' : ''}
+        ${a.status === 'pending' && user.id && Number(user.id) !== Number(a.proposed_by) ? `<button type="button" class="ml-2 rounded bg-emerald-600 px-2 py-1 text-xs text-white" onclick="respondAmend(${a.id},'approved')">Approve</button><button type="button" class="ml-1 rounded bg-rose-600 px-2 py-1 text-xs text-white" onclick="respondAmend(${a.id},'rejected')">Reject</button>` : ''}
+      </li>`).join('') || '<li class="text-slate-500">None yet.</li>'}</ul>
+      <div class="mt-3 flex gap-2">
+        <input id="amend_desc_${contract.id}" class="flex-1 rounded-xl border px-3 py-2 text-sm" placeholder="Describe proposed change">
+        <button type="button" class="rounded-xl bg-slate-800 px-3 py-2 text-sm text-white" onclick="proposeAmend(${contract.id})">Propose</button>
+      </div>
+    </div>`
+      : '';
+
   return `<section class="glass rounded-3xl border p-6">
     <div class="flex items-center justify-between">
       <div>
         <h3 class="text-2xl font-semibold">Contract #${contract.id}</h3>
-        <p class="text-sm text-slate-500">${contract.status}</p>
+        <p class="text-sm text-slate-500">${contract.status} | ${contract.currency || 'USD'} | Partial release: ${contract.partial_release_pct || 0}%</p>
       </div>
-      <a class="rounded-xl bg-slate-900 px-4 py-2 text-white" href="escrow.html?contract_id=${contract.id}">Escrow</a>
+      <div class="flex gap-2">
+        <a class="rounded-xl bg-slate-700 px-4 py-2 text-white" href="contract.html?contract_id=${contract.id}">Messages</a>
+        <a class="rounded-xl bg-slate-900 px-4 py-2 text-white" href="escrow.html?contract_id=${contract.id}">Escrow</a>
+      </div>
     </div>
     ${ndaActions}
+    ${amendBlock}
     <div class="mt-5 grid gap-4">
       ${milestones.map((item) => `<div class="rounded-2xl border p-4">
         <div class="flex items-center justify-between"><strong>${item.title}</strong><span class="badge badge-info">${item.status}</span></div>
@@ -111,6 +163,7 @@ function renderContract(contract, user) {
           <button onclick="actionPost('escrow.php?action=lock',{milestone_id:${item.id}})" class="rounded-lg bg-amber-500 px-3 py-2 text-sm text-white">Lock Escrow</button>
           <button onclick="actionPost('project.php?action=milestones/start',{milestone_id:${item.id}})" class="rounded-lg bg-sky-600 px-3 py-2 text-sm text-white">Start</button>
           <button onclick="window.location='contract.html?contract_id=${contract.id}&milestone_id=${item.id}'" class="rounded-lg bg-slate-700 px-3 py-2 text-sm text-white">Open</button>
+          ${user.role === 'client' && Number(contract.partial_release_pct) > 0 && item.status === 'submitted' ? `<button onclick="actionPost('escrow.php?action=partial-release',{milestone_id:${item.id}})" class="rounded-lg bg-violet-600 px-3 py-2 text-sm text-white">Partial release (${contract.partial_release_pct}%)</button>` : ''}
           <button onclick="actionPost('project.php?action=milestones/revision',{milestone_id:${item.id}})" class="rounded-lg bg-rose-500 px-3 py-2 text-sm text-white">Revision</button>
           <button onclick="actionPost('project.php?action=milestones/approve',{milestone_id:${item.id}})" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white">Approve</button>
           ${user.role === 'freelancer' ? `<button onclick="actionPost('project.php?action=milestones/confirm',{milestone_id:${item.id}})" class="rounded-lg bg-emerald-800 px-3 py-2 text-sm text-white">Confirm Complete</button>` : ''}
@@ -118,6 +171,30 @@ function renderContract(contract, user) {
       </div>`).join('')}
     </div>
   </section>`;
+}
+
+async function proposeAmend(contractId) {
+  const el = document.getElementById(`amend_desc_${contractId}`);
+  const change_description = (el && el.value) || '';
+  if (!change_description.trim()) {
+    alert('Enter a change description');
+    return;
+  }
+  try {
+    await apiCall('project.php?action=contracts/amend', 'POST', { contract_id: contractId, change_description });
+    location.reload();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function respondAmend(amendmentId, response) {
+  try {
+    await apiCall('project.php?action=contracts/amend/respond', 'POST', { amendment_id: amendmentId, response });
+    location.reload();
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 async function actionPost(endpoint, body) {
@@ -128,3 +205,7 @@ async function actionPost(endpoint, body) {
     alert(error.message);
   }
 }
+
+window.proposeAmend = proposeAmend;
+window.respondAmend = respondAmend;
+window.actionPost = actionPost;

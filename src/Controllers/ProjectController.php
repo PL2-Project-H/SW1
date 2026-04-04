@@ -103,9 +103,9 @@ class ProjectController extends BaseController
 
     public function submitDeliverable(): void
     {
-        $this->requireAuth('freelancer');
+        $userId = $this->requireAuth('freelancer');
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
-        $path = $this->uploadFile('deliverables', (int) $_SESSION['user_id'], ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip', 'txt']);
+        $path = $this->uploadFile('deliverables', $userId, ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip', 'txt']);
         $id = $this->milestones->handleDeliverable($milestoneId, $path);
         Response::json(['id' => $id, 'file_path' => $path]);
     }
@@ -179,9 +179,9 @@ class ProjectController extends BaseController
 
     public function createSnapshot(): void
     {
-        $this->requireAuth('freelancer');
+        $userId = $this->requireAuth('freelancer');
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
-        $path = $this->uploadFile('snapshots', (int) $_SESSION['user_id'], ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip']);
+        $path = $this->uploadFile('snapshots', $userId, ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip']);
         $this->milestones->snapshot($milestoneId, $path);
         Response::json(['file_path' => $path]);
     }
@@ -189,14 +189,46 @@ class ProjectController extends BaseController
     public function amend(array $data): void
     {
         $userId = $this->requireAuth();
-        $id = (new ContractService())->proposeAmendment((int) $data['contract_id'], $userId, $data['change_description']);
+        $desc = $this->stringField($data, 'change_description', 4000);
+        $id = (new ContractService())->proposeAmendment($this->intField($data, 'contract_id', 1), $userId, $desc);
         Response::json(['id' => $id]);
     }
 
     public function respondAmendment(array $data): void
     {
         $userId = $this->requireAuth();
-        (new ContractService())->respondToAmendment((int) $data['amendment_id'], $userId, $data['response']);
+        $response = $this->stringField($data, 'response', 40);
+        (new ContractService())->respondToAmendment($this->intField($data, 'amendment_id', 1), $userId, $response);
         Response::json(['message' => 'Amendment updated']);
+    }
+
+    public function contractMessages(int $contractId): void
+    {
+        $userId = $this->requireAuth();
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+        if ($userId !== (int) $contract['client_id'] && $userId !== (int) $contract['freelancer_id']) {
+            Response::error('Forbidden', 403);
+        }
+        Response::json($this->contracts->listContractMessages($contractId));
+    }
+
+    public function sendContractMessage(array $data): void
+    {
+        $userId = $this->requireAuth();
+        $contractId = $this->intField($data, 'contract_id', 1);
+        $message = $this->stringField($data, 'message', 8000);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+        if ($userId !== (int) $contract['client_id'] && $userId !== (int) $contract['freelancer_id']) {
+            Response::error('Forbidden', 403);
+        }
+        $id = $this->contracts->addContractMessage($contractId, $userId, $message);
+        (new AuditService())->log($userId, 'contract_message_sent', 'contract', $contractId, null, ['message_id' => $id]);
+        Response::json(['id' => $id]);
     }
 }

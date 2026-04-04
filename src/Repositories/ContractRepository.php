@@ -96,4 +96,26 @@ class ContractRepository extends BaseRepository
         }
         $this->execute('UPDATE contracts SET status = ? WHERE id = ?', [$status, $contractId]);
     }
+
+    public function listContractMessages(int $contractId, bool $includeArchived = false): array
+    {
+        $sql = 'SELECT cm.*, u.name AS sender_name
+                FROM contract_messages cm
+                JOIN users u ON u.id = cm.sender_id
+                WHERE cm.contract_id = ?';
+        if (!$includeArchived) {
+            $sql .= ' AND cm.archived = 0';
+        }
+        $sql .= ' ORDER BY cm.sent_at ASC';
+
+        return $this->fetchAllRows($sql, [$contractId]);
+    }
+
+    public function addContractMessage(int $contractId, int $senderId, string $message): int
+    {
+        return $this->insert(
+            'INSERT INTO contract_messages (contract_id, sender_id, message) VALUES (?, ?, ?)',
+            [$contractId, $senderId, $message]
+        );
+    }
 }
