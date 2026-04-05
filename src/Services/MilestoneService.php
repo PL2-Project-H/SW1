@@ -31,6 +31,8 @@ class MilestoneService
             Response::error('Milestone amounts must sum to contract total amount: ' . $contract['total_amount'], 422);
         }
 
+        $this->ensureNoDependencyCycles($items);
+
         $pdo = Database::getInstance()->getConnection();
         $created = [];
         $index = 1;
@@ -56,6 +58,84 @@ class MilestoneService
         }
 
         return $created;
+    }
+
+    private function ensureNoDependencyCycles(array $items): void
+    {
+        $graph = [];
+        $aliases = [];
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $nodeId = 'item_' . $index;
+            $graph[$nodeId] = [];
+
+            foreach ($this->milestoneAliases($item, $index) as $alias) {
+                $aliases[$alias] = $nodeId;
+            }
+        }
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $dependency = $item['dependency_milestone_id'] ?? null;
+            if ($dependency === null || $dependency === '') {
+                continue;
+            }
+
+            $alias = (string) $dependency;
+            if (isset($aliases[$alias])) {
+                $graph['item_' . $index][] = $aliases[$alias];
+            }
+        }
+
+        $state = [];
+        foreach (array_keys($graph) as $nodeId) {
+            if ($this->hasCycle($nodeId, $graph, $state)) {
+                Response::error('Milestone dependencies cannot contain cycles', 422);
+            }
+        }
+    }
+
+    private function milestoneAliases(array $item, int $index): array
+    {
+        $aliases = [(string) ($index + 1)];
+
+        foreach (['id', 'milestone_id', 'temp_id', 'order_index'] as $field) {
+            $value = $item[$field] ?? null;
+            if ($value === null || $value === '') {
+                continue;
+            }
+            $aliases[] = (string) $value;
+        }
+
+        return array_values(array_unique($aliases));
+    }
+
+    private function hasCycle(string $nodeId, array $graph, array &$state): bool
+    {
+        $status = $state[$nodeId] ?? 0;
+        if ($status === 1) {
+            return true;
+        }
+        if ($status === 2) {
+            return false;
+        }
+
+        $state[$nodeId] = 1;
+        foreach ($graph[$nodeId] ?? [] as $neighbor) {
+            if ($this->hasCycle($neighbor, $graph, $state)) {
+                return true;
+            }
+        }
+        $state[$nodeId] = 2;
+
+        return false;
     }
 
     public function startMilestone(int $milestoneId): void

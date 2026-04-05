@@ -134,6 +134,7 @@ class AuthService
             'users/sanction' => ['tech_support', 'dispute_mediator'],
             'audit-log' => ['tech_support'],
             'search-index/rebuild' => ['tech_support'],
+            'milestones/auto-approve' => ['financial_admin', 'dispute_mediator', 'tech_support'],
             'weekly-digest/preview' => ['tech_support'],
             'weekly-digest/send' => ['tech_support'],
             'roles' => ['tech_support'],

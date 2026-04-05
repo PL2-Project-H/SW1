@@ -134,11 +134,34 @@ class AdminController extends BaseController
         (new AuthService())->checkRole('search-index/rebuild');
         $service = new SkillMatchingService();
         $freelancers = $this->freelancers->listFreelancers();
+        $niches = [];
         foreach ($freelancers as $freelancer) {
             (new ReputationService())->calculate((int) $freelancer['id']);
-            $service->rankFreshAndPopulateCache($freelancer['niche'], explode(',', str_replace('_', ' ', $freelancer['niche'])), false);
+            $niche = (string) $freelancer['niche'];
+            if ($niche !== '') {
+                $niches[$niche] = true;
+            }
+        }
+        foreach (array_keys($niches) as $niche) {
+            $service->rankFreshAndPopulateCache($niche, explode(',', str_replace('_', ' ', $niche)), false);
         }
         Response::json(['message' => 'Search cache rebuilt', 'count' => count($freelancers)]);
+    }
+
+    public function autoApproveMilestones(): void
+    {
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('milestones/auto-approve');
+        (new MilestoneService())->autoApprove();
+        Response::json(['message' => 'Milestone auto-approval completed']);
+    }
+
+    public function processPayouts(): void
+    {
+        $this->requireAuth('admin');
+        (new AuthService())->checkRole('escrow/process-payouts');
+        (new EscrowService())->schedulePayout();
+        Response::json(['message' => 'Payout processing completed']);
     }
 
     public function digestPreview(): void

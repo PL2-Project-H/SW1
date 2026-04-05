@@ -80,13 +80,15 @@ class DisputeService
             'snapshots' => $snapshots->fetchAll(),
             'audit_logs' => $auditLogs->fetchAll(),
         ];
-        $dir = dirname(__DIR__) . '/uploads/evidence';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
+        $dir = dirname(__DIR__, 2) . '/storage/evidence';
+        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+            Response::error('Evidence directory could not be created', 500);
         }
         $path = $dir . '/dispute_' . $disputeId . '.json';
-        file_put_contents($path, json_encode($payload, JSON_PRETTY_PRINT));
-        $relative = 'uploads/evidence/dispute_' . $disputeId . '.json';
+        if (file_put_contents($path, json_encode($payload, JSON_PRETTY_PRINT)) === false) {
+            Response::error('Evidence bundle could not be written', 500);
+        }
+        $relative = 'storage/evidence/dispute_' . $disputeId . '.json';
         $this->disputes->setEvidence($disputeId, $relative);
         return $relative;
     }

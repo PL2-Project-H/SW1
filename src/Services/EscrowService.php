@@ -205,7 +205,6 @@ class EscrowService
 
     public function balance(int $contractId): array
     {
-        $this->schedulePayout();
         $transactions = $this->escrow->getContractTransactions($contractId);
         $pending = 0;
         $cleared = 0;

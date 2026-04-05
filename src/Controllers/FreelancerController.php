@@ -166,11 +166,11 @@ class FreelancerController extends BaseController
         $timezone = $viewer['timezone'] ?? 'UTC';
         $viewerTz = new DateTimeZone($timezone);
         $utc = new DateTimeZone('UTC');
-        $weekStartSunday = new DateTimeImmutable('1970-01-04', $utc);
+        $weekStartMonday = new DateTimeImmutable('this week monday', $utc);
 
-        return array_map(function ($slot) use ($viewerTz, $utc, $weekStartSunday) {
+        return array_map(function ($slot) use ($viewerTz, $utc, $weekStartMonday) {
             $dow = max(0, min(6, (int) $slot['day_of_week']));
-            $day = $weekStartSunday->modify('+' . $dow . ' days');
+            $day = $weekStartMonday->modify('+' . $dow . ' days');
             $datePart = $day->format('Y-m-d');
             $startUtc = DateTimeImmutable::createFromFormat(
                 'Y-m-d H:i:s',

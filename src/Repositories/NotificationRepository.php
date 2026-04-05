@@ -11,4 +11,14 @@ class NotificationRepository extends BaseRepository
     {
         return $this->fetchAllRows('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30', [$userId]);
     }
+
+    public function existsRecentByType(int $userId, string $type, int $hours): bool
+    {
+        $row = $this->fetch(
+            'SELECT id FROM notifications WHERE user_id = ? AND type = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR) ORDER BY created_at DESC LIMIT 1',
+            [$userId, $type, $hours]
+        );
+
+        return $row !== null;
+    }
 }

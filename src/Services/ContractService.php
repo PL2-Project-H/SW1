@@ -146,6 +146,12 @@ class ContractService
             $newStatus = 'approved';
         }
         $this->contracts->updateAmendmentStatus($amendmentId, $newStatus, $approvalColumn);
+        if ($newStatus === 'approved') {
+            if (!$this->milestoneTotalsAreValid((int) $amendment['contract_id'])) {
+                $this->contracts->updateAmendmentStatus($amendmentId, 'pending');
+                Response::error('Amendment approved but milestone totals are inconsistent with the contract total amount', 422);
+            }
+        }
         $this->audit->log($userId, 'amendment_approved', 'contract_amendment', $amendmentId, ['status' => $amendment['status']], ['status' => $newStatus, 'approval_column' => $approvalColumn]);
     }
 
@@ -159,5 +165,16 @@ class ContractService
         if (round($sum, 2) !== round((float) $contract['total_amount'], 2)) {
             Response::error('Milestone amounts must sum to contract total amount', 422);
         }
+    }
+
+    private function milestoneTotalsAreValid(int $contractId): bool
+    {
+        $contract = $this->contracts->getContract($contractId);
+        $sum = 0;
+        foreach ($contract['milestones'] as $milestone) {
+            $sum += (float) $milestone['amount'];
+        }
+
+        return round($sum, 2) === round((float) $contract['total_amount'], 2);
     }
 }

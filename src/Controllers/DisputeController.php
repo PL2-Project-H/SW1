@@ -41,10 +41,23 @@ class DisputeController extends BaseController
             Response::error('Dispute not found', 404);
         }
         if ($dispute['evidence_path']) {
-            $path = dirname(__DIR__) . '/' . $dispute['evidence_path'];
+            $path = $this->resolveEvidencePath((string) $dispute['evidence_path']);
             $dispute['evidence'] = file_exists($path) ? json_decode(file_get_contents($path), true) : null;
         }
         Response::json($dispute);
+    }
+
+    private function resolveEvidencePath(string $storedPath): string
+    {
+        if ($storedPath === '') {
+            return '';
+        }
+
+        if (str_starts_with($storedPath, 'storage/')) {
+            return dirname(__DIR__, 2) . '/' . $storedPath;
+        }
+
+        return dirname(__DIR__) . '/' . $storedPath;
     }
 
     public function safeRoomMessage(array $data): void

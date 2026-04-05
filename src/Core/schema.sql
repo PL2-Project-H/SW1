@@ -281,7 +281,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     payload_json JSON DEFAULT NULL,
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user_type_created (user_id, type, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (

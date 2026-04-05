@@ -85,7 +85,10 @@ class ContractRepository extends BaseRepository
         }
         if ($approvalColumn !== null) {
             $this->execute("UPDATE contract_amendments SET {$approvalColumn} = NOW(), status = ? WHERE id = ?", [$status, $amendmentId]);
+            return;
         }
+
+        $this->execute('UPDATE contract_amendments SET status = ? WHERE id = ?', [$status, $amendmentId]);
     }
 
     public function updateContractStatus(int $contractId, string $status, bool $stampVerdictAt = false): void
