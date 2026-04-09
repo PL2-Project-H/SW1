@@ -316,6 +316,7 @@ CREATE TABLE IF NOT EXISTS ratings (
     score INT NOT NULL,
     comment TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_rating (contract_id, rated_user_id),
     FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
     FOREIGN KEY (rated_user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -399,6 +400,13 @@ CREATE TABLE IF NOT EXISTS search_cache (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (freelancer_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+INSERT IGNORE INTO tax_rates (country, rate) VALUES
+('egypt',0.14),('united kingdom',0.20),('united states',0.00),('spain',0.21),
+('japan',0.10),('france',0.20),('germany',0.19),('mexico',0.16),
+('china',0.13),('australia',0.10),('russia',0.20),('brazil',0.17),
+('singapore',0.09),('canada',0.15),('italy',0.22),('argentina',0.21),
+('south korea',0.10),('serbia',0.20),('ireland',0.23);
 
 INSERT INTO users (email, password_hash, role, admin_role, name, country, timezone, kyc_status, status)
 SELECT 'admin@specialisthub.local', '$2y$12$gof0haEGh8ROBsITEj/pueUZRQSQm6c5qcfh/4ir/mt0zMxO5lJ8m', 'admin', 'dispute_mediator', 'Platform Admin', 'Egypt', 'Africa/Cairo', 'verified', 'active'

@@ -18,9 +18,9 @@ class DisputeController extends BaseController
     {
         $userId = $this->requireAuth();
         $id = $this->disputes->create([
-            'contract_id' => $data['contract_id'],
-            'filed_by' => $userId,
-            'reason' => $data['reason'],
+            'contract_id' => $this->intField($data, 'contract_id', 1),
+            'filed_by'    => $userId,
+            'reason'      => $this->stringField($data, 'reason', 2000),
         ]);
         $this->service->assembleEvidence($id);
         $this->service->assignArbitrator($id);

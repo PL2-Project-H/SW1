@@ -143,8 +143,8 @@ class MilestoneService
     public function startMilestone(int $milestoneId): void
     {
         $milestone = $this->milestones->getMilestone($milestoneId);
-        if (!$this->escrow->isCleared($milestoneId)) {
-            Response::error('Escrow must be cleared before milestone starts', 422);
+        if (!$this->escrow->hasLock($milestoneId)) {
+            Response::error('Escrow funds must be locked before milestone starts', 422);
         }
         if (!empty($milestone['dependency_milestone_id'])) {
             $dependency = $this->milestones->getMilestone((int) $milestone['dependency_milestone_id']);

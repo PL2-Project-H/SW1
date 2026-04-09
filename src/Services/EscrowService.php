@@ -115,7 +115,7 @@ class EscrowService
         $client->execute([$contract['client_id']]);
         $clientCountry = strtolower(($client->fetch()['country'] ?? ''));
 
-        $stmt = $pdo->prepare('SELECT rate FROM tax_rates WHERE country = ?');
+        $stmt = $pdo->prepare('SELECT rate FROM tax_rates WHERE LOWER(country) = ?');
         $stmt->execute([$clientCountry]);
         $taxRow = $stmt->fetch();
         $taxRate = $taxRow ? (float) $taxRow['rate'] : 0.15;

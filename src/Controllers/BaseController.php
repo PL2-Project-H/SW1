@@ -9,7 +9,6 @@ class BaseController
     {
         $this->auth = new AuthService();
         $this->notifications = new NotificationService();
-        $this->notifications->checkDeadlines();
     }
 
     protected function requireAuth(?string $role = null): int

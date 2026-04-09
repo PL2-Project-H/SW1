@@ -22,3 +22,8 @@ Operational notes:
 ```bash
 * * * * * curl -s -X POST http://localhost/api/admin.php?action=escrow/process-payouts
 ```
+
+- Deadline checks for milestones should be run via:
+```bash
+* * * * * curl -s http://localhost/api/cron.php
+```

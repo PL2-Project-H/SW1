@@ -153,6 +153,12 @@ class ProjectController extends BaseController
         }
 
         $pdo = Database::getInstance()->getConnection();
+        $existing = $pdo->prepare('SELECT id FROM ratings WHERE contract_id = ? AND rated_user_id = ?');
+        $existing->execute([$contractId, $ratedUserId]);
+        if ($existing->fetch()) {
+            Response::error('You have already submitted a rating for this user on this contract', 422);
+        }
+
         try {
             $pdo->beginTransaction();
             $stmt = $pdo->prepare('INSERT INTO ratings (contract_id, rated_user_id, score, comment) VALUES (?, ?, ?, ?)');

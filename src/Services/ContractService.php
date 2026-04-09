@@ -109,10 +109,8 @@ class ContractService
             $contractId = (int) $row['id'];
             $this->contracts->activateContract($contractId);
             $contract = $this->contracts->getContract($contractId);
-            if (!empty($contract['milestones'])) {
-                $firstMilestone = $contract['milestones'][0];
-                $this->escrow->lockFunds($contract, $firstMilestone);
-            }
+            // Milestones are built separately after contract creation; do not auto-lock here.
+            // Escrow locking is triggered explicitly via the admin escrow/lock endpoint.
             $this->audit->log($freelancerId, 'nda_fully_signed', 'nda', (int) $nda['id'], null, ['contract_id' => $contractId]);
         }
     }
