@@ -100,6 +100,11 @@ class ContractRepository extends BaseRepository
         $this->execute('UPDATE contracts SET status = ? WHERE id = ?', [$status, $contractId]);
     }
 
+    public function updateContractAmount(int $contractId, float $totalAmount): void
+    {
+        $this->execute('UPDATE contracts SET total_amount = ? WHERE id = ?', [$totalAmount, $contractId]);
+    }
+
     public function listContractMessages(int $contractId, bool $includeArchived = false): array
     {
         $sql = 'SELECT cm.*, u.name AS sender_name

@@ -47,6 +47,11 @@ class MilestoneRepository extends BaseRepository
         $this->execute("UPDATE milestones SET status = ?{$suffix} WHERE id = ?", [$status, $milestoneId]);
     }
 
+    public function updateMilestoneAmount(int $milestoneId, float $amount): void
+    {
+        $this->execute('UPDATE milestones SET amount = ? WHERE id = ?', [$amount, $milestoneId]);
+    }
+
     public function createDeliverable(int $milestoneId, string $filePath, int $freeRevisionsAllowed): int
     {
         return $this->insert(

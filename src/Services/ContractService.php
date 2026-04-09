@@ -8,6 +8,7 @@ class ContractService
     private AuditService $audit;
     private NotificationService $notifications;
     private MilestoneRepository $milestones;
+    private EscrowService $escrow;
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class ContractService
         $this->audit = new AuditService();
         $this->notifications = new NotificationService();
         $this->milestones = new MilestoneRepository();
+        $this->escrow = new EscrowService();
     }
 
     public function generateNda(int $jobId, int $freelancerId): int
@@ -99,13 +101,19 @@ class ContractService
 
     private function activateContractIfFullySigned(int $jobId, int $freelancerId): void
     {
-        $contract = Database::getInstance()->getConnection()->prepare('SELECT id FROM contracts WHERE job_id = ? AND freelancer_id = ? ORDER BY id DESC LIMIT 1');
-        $contract->execute([$jobId, $freelancerId]);
-        $row = $contract->fetch();
+        $contractData = Database::getInstance()->getConnection()->prepare('SELECT id FROM contracts WHERE job_id = ? AND freelancer_id = ? ORDER BY id DESC LIMIT 1');
+        $contractData->execute([$jobId, $freelancerId]);
+        $row = $contractData->fetch();
         $nda = $this->contracts->getNdaForJob($jobId, $freelancerId);
         if ($row && !empty($nda['client_signed_at']) && !empty($nda['freelancer_signed_at'])) {
-            $this->contracts->activateContract((int) $row['id']);
-            $this->audit->log($freelancerId, 'nda_fully_signed', 'nda', (int) $nda['id'], null, ['contract_id' => (int) $row['id']]);
+            $contractId = (int) $row['id'];
+            $this->contracts->activateContract($contractId);
+            $contract = $this->contracts->getContract($contractId);
+            if (!empty($contract['milestones'])) {
+                $firstMilestone = $contract['milestones'][0];
+                $this->escrow->lockFunds($contract, $firstMilestone);
+            }
+            $this->audit->log($freelancerId, 'nda_fully_signed', 'nda', (int) $nda['id'], null, ['contract_id' => $contractId]);
         }
     }
 
@@ -147,6 +155,18 @@ class ContractService
         }
         $this->contracts->updateAmendmentStatus($amendmentId, $newStatus, $approvalColumn);
         if ($newStatus === 'approved') {
+            $change = json_decode((string) $amendment['change_description'], true);
+            if ($change !== null) {
+                if (isset($change['new_total'])) {
+                    $this->contracts->updateContractAmount((int) $amendment['contract_id'], (float) $change['new_total']);
+                }
+                if (isset($change['milestones']) && is_array($change['milestones'])) {
+                    foreach ($change['milestones'] as $mId => $mAmount) {
+                        $this->milestones->updateMilestoneAmount((int) $mId, (float) $mAmount);
+                    }
+                }
+            }
+
             if (!$this->milestoneTotalsAreValid((int) $amendment['contract_id'])) {
                 $this->contracts->updateAmendmentStatus($amendmentId, 'pending');
                 Response::error('Amendment approved but milestone totals are inconsistent with the contract total amount', 422);

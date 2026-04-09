@@ -8,6 +8,7 @@ class MilestoneService
     private AuditService $audit;
     private NotificationService $notifications;
     private ReputationService $reputation;
+    private FreelancerSearchRepository $search;
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class MilestoneService
         $this->audit = new AuditService();
         $this->notifications = new NotificationService();
         $this->reputation = new ReputationService();
+        $this->search = new FreelancerSearchRepository();
     }
 
     public function buildMilestones(int $contractId, array $items): array
@@ -141,8 +143,8 @@ class MilestoneService
     public function startMilestone(int $milestoneId): void
     {
         $milestone = $this->milestones->getMilestone($milestoneId);
-        if (!$this->escrow->hasLock($milestoneId)) {
-            Response::error('Escrow must be locked before milestone starts', 422);
+        if (!$this->escrow->isCleared($milestoneId)) {
+            Response::error('Escrow must be cleared before milestone starts', 422);
         }
         if (!empty($milestone['dependency_milestone_id'])) {
             $dependency = $this->milestones->getMilestone((int) $milestone['dependency_milestone_id']);
@@ -243,13 +245,54 @@ class MilestoneService
         }
         $this->milestones->confirmDeliverable((int) $deliverable['id']);
         $this->milestones->updateStatus($milestoneId, 'complete');
-        $this->audit->log((int) $_SESSION['user_id'], 'milestone_completed', 'milestone', $milestoneId, ['status' => 'approved'], ['status' => 'complete']);
+
+        $milestone = $this->milestones->getMilestone($milestoneId);
+        $contract = $this->contracts->getContract((int) $milestone['contract_id']);
+        $freelancerId = (int) $contract['freelancer_id'];
+        $profile = (new FreelancerRepository())->getProfile($freelancerId);
+        $reputation = $profile['reputation'] ?? ['composite_score' => 0];
+
+        $completedProjects = Database::getInstance()->getConnection()->prepare('SELECT COUNT(*) FROM contracts WHERE freelancer_id = ? AND status IN ("completed", "final_resolved")');
+        $completedProjects->execute([$freelancerId]);
+        $count = (int) $completedProjects->fetchColumn();
+
+        $this->search->upsertSearchCache(
+            $freelancerId,
+            $profile['niche'] ?? 'other',
+            $profile['bio'] ?? '',
+            implode(', ', array_column($profile['skills'] ?? [], 'name')),
+            $count,
+            (float) ($reputation['composite_score'] ?? 0),
+            (float) ($reputation['composite_score'] ?? 0)
+        );
+
+        $this->audit->log((int) ($_SESSION['user_id'] ?? 0), 'milestone_completed', 'milestone', $milestoneId, ['status' => 'approved'], ['status' => 'complete']);
     }
 
     public function snapshot(int $milestoneId, string $filePath): void
     {
         $snapshotId = $this->milestones->addSnapshot($milestoneId, $filePath);
         $this->audit->log((int) $_SESSION['user_id'], 'snapshot_created', 'wip_snapshot', $snapshotId, null, ['milestone_id' => $milestoneId]);
+    }
+
+    public function checkDeadlines(): void
+    {
+        $milestones = $this->milestones->listInProgressForDeadlineChecks();
+        foreach ($milestones as $milestone) {
+            $dueDate = strtotime((string) $milestone['due_date']);
+            $now = time();
+            $diff = $dueDate - $now;
+
+            $contract = $this->contracts->getContract((int) $milestone['contract_id']);
+
+            if ($diff > 0 && $diff <= 86400) { // Within 24 hours
+                $this->notifications->send((int) $contract['freelancer_id'], 'deadline_approaching', "Milestone '{$milestone['title']}' is due within 24 hours.");
+            } elseif ($diff < 0) { // Overdue
+                $this->audit->log(null, 'milestone_overdue', 'milestone', (int) $milestone['id'], null, ['due_date' => $milestone['due_date']]);
+                $this->contracts->updateContractStatus((int) $milestone['contract_id'], 'active'); // Ensure status is active or alert
+                $this->notifications->send((int) $contract['client_id'], 'milestone_overdue', "Milestone '{$milestone['title']}' is overdue.");
+            }
+        }
     }
 
     public function autoApprove(): void

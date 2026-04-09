@@ -23,6 +23,11 @@ class EscrowRepository extends BaseRepository
         return (bool) $this->fetch('SELECT id FROM escrow_transactions WHERE milestone_id = ? AND type = "lock"', [$milestoneId]);
     }
 
+    public function isClearedForMilestone(int $milestoneId): bool
+    {
+        return (bool) $this->fetch('SELECT id FROM escrow_transactions WHERE milestone_id = ? AND type = "lock" AND status = "cleared"', [$milestoneId]);
+    }
+
     public function getContractTransactions(int $contractId): array
     {
         return $this->fetchAllRows('SELECT * FROM escrow_transactions WHERE contract_id = ? ORDER BY created_at DESC', [$contractId]);

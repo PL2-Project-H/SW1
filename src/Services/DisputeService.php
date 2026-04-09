@@ -103,10 +103,27 @@ class DisputeService
             }
             return null;
         }
-        $adminId = (int) $arbitrators[0]['id'];
+
+        // Load-balanced selection: find admin with minimum open disputes
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare('
+            SELECT u.id, COUNT(d.id) as open_disputes
+            FROM users u
+            LEFT JOIN disputes d ON d.assigned_admin = u.id AND d.status IN ("open", "in_mediation")
+            WHERE u.role = "admin" ' . ($excludeAdminId ? 'AND u.id != ? ' : '') . '
+            GROUP BY u.id
+            ORDER BY open_disputes ASC, u.id ASC
+            LIMIT 1
+        ');
+        $params = $excludeAdminId ? [$excludeAdminId] : [];
+        $stmt->execute($params);
+        $bestAdmin = $stmt->fetch();
+
+        $adminId = $bestAdmin ? (int) $bestAdmin['id'] : (int) $arbitrators[0]['id'];
+
         $this->disputes->updateAssignment($disputeId, $adminId, 'in_mediation');
         $this->notifications->send($adminId, 'dispute_assigned', 'A new dispute has been assigned to you.');
-        $this->audit->log((int) $_SESSION['user_id'], 'dispute_assigned', 'dispute', $disputeId, null, ['assigned_admin' => $adminId]);
+        $this->audit->log((int) ($_SESSION['user_id'] ?? 0), 'dispute_assigned', 'dispute', $disputeId, null, ['assigned_admin' => $adminId]);
         return $adminId;
     }
 

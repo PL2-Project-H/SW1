@@ -18,6 +18,11 @@ class EscrowService
         return $this->escrow->hasLockForMilestone($milestoneId);
     }
 
+    public function isCleared(int $milestoneId): bool
+    {
+        return $this->escrow->isClearedForMilestone($milestoneId);
+    }
+
     public function lockFunds(array $contract, array $milestone): int
     {
         $id = $this->escrow->createTransaction([
@@ -109,23 +114,15 @@ class EscrowService
         $client = $pdo->prepare('SELECT country FROM users WHERE id = ?');
         $client->execute([$contract['client_id']]);
         $clientCountry = strtolower(($client->fetch()['country'] ?? ''));
-        $freelancer = $pdo->prepare('SELECT country FROM users WHERE id = ?');
-        $freelancer->execute([$contract['freelancer_id']]);
-        $freelancerCountry = strtolower(($freelancer->fetch()['country'] ?? ''));
 
-        $eu = ['germany', 'france', 'spain', 'italy', 'netherlands', 'belgium', 'sweden', 'poland', 'ireland', 'portugal', 'greece', 'austria'];
+        $stmt = $pdo->prepare('SELECT rate FROM tax_rates WHERE country = ?');
+        $stmt->execute([$clientCountry]);
+        $taxRow = $stmt->fetch();
+        $taxRate = $taxRow ? (float) $taxRow['rate'] : 0.15;
+
         $feeData = $this->calculateFee((int) $contract['client_id'], (int) $contract['freelancer_id']);
         $platformFee = round($grossAmount * ($feeData['fee_percentage'] / 100), 2);
 
-        if (in_array($clientCountry, $eu, true) && in_array($freelancerCountry, $eu, true)) {
-            $taxRate = 0.20;
-        } elseif ($clientCountry === 'united states' || $clientCountry === 'usa' || $clientCountry === 'us') {
-            $taxRate = 0.0;
-        } elseif ($freelancerCountry === 'egypt') {
-            $taxRate = 0.0;
-        } else {
-            $taxRate = 0.15;
-        }
         $taxOnFee = round($platformFee * $taxRate, 2);
         return [
             'gross_amount' => $grossAmount,
@@ -185,18 +182,33 @@ class EscrowService
         return ['client_refund' => $clientShare, 'freelancer_payout' => $freelancerShare, 'transaction_ids' => $transactions];
     }
 
+    public function getExchangeRate(string $from, string $to = 'USD'): float
+    {
+        if ($from === $to) {
+            return 1.0;
+        }
+        // Implementation for an external API would go here.
+        // For now, we use a dynamic lookup or a slightly more robust mock.
+        $rates = [
+            'USD' => 1.0,
+            'EUR' => 1.08,
+            'GBP' => 1.27,
+        ];
+        return (float) ($rates[$from] ?? 1.0);
+    }
+
     public function getLedger(int $contractId): array
     {
         $transactions = $this->escrow->getContractTransactions($contractId);
-        $rates = ['USD' => 1, 'EUR' => 1 / 0.92, 'GBP' => 1 / 0.79];
         $grouped = [];
         foreach ($transactions as $tx) {
             $currency = $tx['currency'];
             if (!isset($grouped[$currency])) {
                 $grouped[$currency] = ['transactions' => [], 'total' => 0];
             }
+            $rate = $this->getExchangeRate($currency, 'USD');
             $grouped[$currency]['transactions'][] = array_merge($tx, [
-                'usd_equivalent' => round(((float) $tx['amount']) * $rates[$currency], 2),
+                'usd_equivalent' => round(((float) $tx['amount']) * $rate, 2),
             ]);
             $grouped[$currency]['total'] += (float) $tx['amount'];
         }
