@@ -43,8 +43,13 @@ class EscrowController extends BaseController
 
     public function balance(): void
     {
-        $this->requireAuth();
-        Response::json($this->escrow->balance((int) $_GET['contract_id']));
+        $userId = $this->requireAuth();
+        $contractId = (int) ($_GET['contract_id'] ?? 0);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract || ((int) $contract['client_id'] !== $userId && (int) $contract['freelancer_id'] !== $userId)) {
+            Response::error('Forbidden', 403);
+        }
+        Response::json($this->escrow->balance($contractId));
     }
 
     public function refund(array $data): void
@@ -59,14 +64,24 @@ class EscrowController extends BaseController
 
     public function ledger(): void
     {
-        $this->requireAuth();
-        Response::json($this->escrow->getLedger((int) $_GET['contract_id']));
+        $userId = $this->requireAuth();
+        $contractId = (int) ($_GET['contract_id'] ?? 0);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract || ((int) $contract['client_id'] !== $userId && (int) $contract['freelancer_id'] !== $userId)) {
+            Response::error('Forbidden', 403);
+        }
+        Response::json($this->escrow->getLedger($contractId));
     }
 
     public function payoutSchedule(): void
     {
-        $this->requireAuth();
-        $balance = $this->escrow->balance((int) $_GET['contract_id']);
+        $userId = $this->requireAuth();
+        $contractId = (int) ($_GET['contract_id'] ?? 0);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract || ((int) $contract['client_id'] !== $userId && (int) $contract['freelancer_id'] !== $userId)) {
+            Response::error('Forbidden', 403);
+        }
+        $balance = $this->escrow->balance($contractId);
         Response::json([
             'cooling_off_days' => 3,
             'pending_balance' => $balance['pending_balance'],
@@ -76,15 +91,23 @@ class EscrowController extends BaseController
 
     public function fees(): void
     {
-        $this->requireAuth();
-        $contract = $this->contracts->getContract((int) $_GET['contract_id']);
+        $userId = $this->requireAuth();
+        $contractId = (int) ($_GET['contract_id'] ?? 0);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract || ((int) $contract['client_id'] !== $userId && (int) $contract['freelancer_id'] !== $userId)) {
+            Response::error('Forbidden', 403);
+        }
         Response::json($this->escrow->calculateFee((int) $contract['client_id'], (int) $contract['freelancer_id']));
     }
 
     public function tax(): void
     {
-        $this->requireAuth();
-        $contract = $this->contracts->getContract((int) $_GET['contract_id']);
+        $userId = $this->requireAuth();
+        $contractId = (int) ($_GET['contract_id'] ?? 0);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract || ((int) $contract['client_id'] !== $userId && (int) $contract['freelancer_id'] !== $userId)) {
+            Response::error('Forbidden', 403);
+        }
         Response::json($this->escrow->calculateTax($contract, (float) ($_GET['gross_amount'] ?? $contract['total_amount'])));
     }
 }

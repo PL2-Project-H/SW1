@@ -26,19 +26,69 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!text) return;
       await apiCall('project.php?action=contracts/message', 'POST', { contract_id: Number(contractId), message: text });
       qs('contract_message_input').value = '';
-      await loadContractMessages(contractId);
     });
   }
 
+  document.getElementById('add-milestone-btn')?.addEventListener('click', () => addMilestoneRow());
+
   qs('milestone-build-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    await apiCall('project.php?action=contracts/milestones/build', 'POST', {
-      contract_id: qs('build_contract_id').value,
-      milestones: JSON.parse(qs('milestones_json').value || '[]')
-    });
-    location.reload();
+    const contractIdInput = qs('build_contract_id').value;
+    if (!contractIdInput) { alert('Enter a contract ID'); return; }
+    const rows = Array.from(document.querySelectorAll('.milestone-row'));
+    if (rows.length === 0) { alert('Add at least one milestone'); return; }
+    const milestones = rows.map((row, i) => ({
+      title: row.querySelector('[name=title]').value.trim(),
+      amount: parseFloat(row.querySelector('[name=amount]').value),
+      due_date: row.querySelector('[name=due_date]').value.replace('T', ' ') + ':00',
+      order_index: parseInt(row.querySelector('[name=order_index]').value, 10) || (i + 1),
+      dependency_milestone_id: row.querySelector('[name=dependency_milestone_id]').value
+        ? parseInt(row.querySelector('[name=dependency_milestone_id]').value, 10)
+        : null,
+    }));
+    try {
+      await apiCall('project.php?action=contracts/milestones/build', 'POST', { contract_id: contractIdInput, milestones });
+      alert('Milestones saved.');
+      location.reload();
+    } catch (error) {
+      alert(error.message);
+    }
   });
 });
+
+function addMilestoneRow(data = {}) {
+  const container = document.getElementById('milestone-rows');
+  const idx = container.querySelectorAll('.milestone-row').length;
+  const row = document.createElement('div');
+  row.className = 'milestone-row glass rounded-2xl border p-4 grid gap-3 md:grid-cols-3';
+  row.innerHTML = `
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Title</label>
+      <input name="title" class="w-full rounded-xl border px-3 py-2 text-sm" placeholder="Milestone title" value="${data.title || ''}" required>
+    </div>
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Amount ($)</label>
+      <input name="amount" type="number" step="0.01" min="0" class="w-full rounded-xl border px-3 py-2 text-sm" placeholder="500.00" value="${data.amount || ''}" required>
+    </div>
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Due Date</label>
+      <input name="due_date" type="datetime-local" class="w-full rounded-xl border px-3 py-2 text-sm" value="${data.due_date ? data.due_date.replace(' ', 'T').substring(0,16) : ''}" required>
+    </div>
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Order Index</label>
+      <input name="order_index" type="number" min="1" class="w-full rounded-xl border px-3 py-2 text-sm" value="${data.order_index || (idx + 1)}">
+    </div>
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Depends on Milestone # (optional)</label>
+      <input name="dependency_milestone_id" type="number" min="1" class="w-full rounded-xl border px-3 py-2 text-sm" placeholder="Leave blank if first" value="${data.dependency_milestone_id || ''}">
+    </div>
+    <div class="flex items-end">
+      <button type="button" class="remove-milestone-btn w-full rounded-xl bg-rose-500 px-3 py-2 text-white text-sm">Remove</button>
+    </div>
+  `;
+  row.querySelector('.remove-milestone-btn').addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
 
 async function loadContractMessages(contractId) {
   try {

@@ -125,6 +125,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       alert(err.message);
     }
   });
+
+  
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (target) {
+        target.classList.toggle('hidden');
+        btn.querySelector('span').textContent = target.classList.contains('hidden') ? '▼' : '▲';
+      }
+    });
+  });
 });
 
 async function reviewCredential(id, decision) {

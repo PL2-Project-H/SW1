@@ -11,5 +11,6 @@ match ($action) {
     'login' => $controller->login($body),
     'logout' => $controller->logout(),
     'me' => $controller->me(),
+    'notifications/clear' => $controller->clearNotifications(),
     default => Response::error('Unknown action', 404),
 };

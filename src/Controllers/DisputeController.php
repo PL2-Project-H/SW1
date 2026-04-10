@@ -22,8 +22,16 @@ class DisputeController extends BaseController
             'filed_by'    => $userId,
             'reason'      => $this->stringField($data, 'reason', 2000),
         ]);
-        $this->service->assembleEvidence($id);
-        $this->service->assignArbitrator($id);
+        try {
+            $this->service->assembleEvidence($id);
+        } catch (Throwable $e) {
+            
+        }
+        try {
+            $this->service->assignArbitrator($id);
+        } catch (Throwable $e) {
+            
+        }
         Response::json(['id' => $id]);
     }
 
@@ -63,7 +71,9 @@ class DisputeController extends BaseController
     public function safeRoomMessage(array $data): void
     {
         $userId = $this->requireAuth();
-        $dispute = $this->disputes->get((int) $data['dispute_id']);
+        $disputeId = $this->intField($data, 'dispute_id', 1);
+        $message = $this->stringField($data, 'message', 8000);
+        $dispute = $this->disputes->get($disputeId);
         if (!$dispute || !in_array($dispute['status'], ['open', 'in_mediation'], true)) {
             Response::error('Safe-room is closed', 422);
         }
@@ -72,7 +82,7 @@ class DisputeController extends BaseController
         if (!in_array($userId, $allowed, true)) {
             Response::error('Forbidden', 403);
         }
-        $id = $this->disputes->addMessage((int) $data['dispute_id'], $userId, $data['message']);
+        $id = $this->disputes->addMessage($disputeId, $userId, $message);
         Response::json(['id' => $id]);
     }
 

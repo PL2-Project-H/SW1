@@ -25,6 +25,11 @@ class NotificationService
         return $this->notifications()->unreadForUser($userId);
     }
 
+    public function clearForUser(int $userId): void
+    {
+        $this->notifications()->markAllAsRead($userId);
+    }
+
     public function checkDeadlines(): void
     {
         $rows = $this->milestones()->listInProgressForDeadlineChecks();

@@ -104,7 +104,7 @@ class DisputeService
             return null;
         }
 
-        // Load-balanced selection: find admin with minimum open disputes
+        
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare('
             SELECT u.id, COUNT(d.id) as open_disputes

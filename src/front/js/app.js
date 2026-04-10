@@ -48,7 +48,6 @@ async function loadSession(redirect = false) {
 
   try {
     renderNav();
-    showNotifications();
   } catch (error) {
     console.error('Session UI bootstrap failed', error);
   }
@@ -75,7 +74,9 @@ async function showNotifications() {
     return;
   }
   const notifications = window.sessionUser.notifications || [];
-  holder.textContent = notifications.filter((item) => !Number(item.is_read)).length;
+  const unreadCount = notifications.filter(n => !Number(unread_only_if_required = n.is_read)).length;
+  
+  holder.textContent = notifications.length;
 }
 
 function renderNav() {
@@ -112,17 +113,73 @@ function renderNav() {
     <div class="flex items-center gap-3 text-sm text-slate-700">
       ${roleLinks.map(([href, label]) => `<a class="hover:text-slate-950" href="${href}">${label}</a>`).join('')}
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 relative">
       <span class="text-sm text-slate-600">${window.sessionUser.name}</span>
-      <span class="badge badge-info">Notifications <span data-notifications class="ml-2">0</span></span>
+      <div class="relative">
+        <button id="notif-toggle" class="badge badge-info cursor-pointer">
+          Notifications <span data-notifications class="ml-2">0</span>
+        </button>
+        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 glass rounded-2xl border p-4 shadow-xl z-50">
+          <div class="flex items-center justify-between border-b pb-2 mb-2">
+            <span class="font-semibold">Notifications</span>
+            <button id="clear-notifs" class="text-xs text-rose-600 hover:underline">Clear all</button>
+          </div>
+          <div id="notif-list" class="max-h-64 overflow-y-auto space-y-2 text-xs text-slate-600">
+            Loading...
+          </div>
+        </div>
+      </div>
       <button id="logout-btn" class="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white">Logout</button>
     </div>
   `;
+
+  showNotifications();
+
+  document.getElementById('notif-toggle')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dropdown = document.getElementById('notif-dropdown');
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      renderNotifications();
+    }
+  });
+
+  document.getElementById('clear-notifs')?.addEventListener('click', async () => {
+    try {
+      await apiCall('auth.php?action=notifications/clear', 'POST', {});
+      window.sessionUser.notifications = [];
+      showNotifications();
+      renderNotifications();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  document.addEventListener('click', () => {
+    document.getElementById('notif-dropdown')?.classList.add('hidden');
+  });
 
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await apiCall('auth.php?action=logout', 'POST', {});
     location.href = 'index.html';
   });
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notif-list');
+  if (!list || !window.sessionUser) return;
+  const notifs = window.sessionUser.notifications || [];
+  if (notifs.length === 0) {
+    list.innerHTML = '<p class="text-center py-4 text-slate-400">No new notifications.</p>';
+    return;
+  }
+  list.innerHTML = notifs.map(n => `
+    <div class="border-b pb-2 last:border-0">
+      <div class="font-medium ${n.is_read == 0 ? 'text-slate-950' : 'text-slate-500'}">${n.type.replace('_', ' ')}</div>
+      <div>${n.message}</div>
+      <div class="text-[10px] text-slate-400 mt-1">${n.created_at}</div>
+    </div>
+  `).join('');
 }
 
 function debounce(fn, wait = 300) {

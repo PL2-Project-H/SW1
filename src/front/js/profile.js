@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderList('availability-list', profile.availability || [], (item) => `<div class="rounded-xl border p-3 text-sm">Day ${item.day_of_week}: ${item.start_time_utc} - ${item.end_time_utc}</div>`);
   renderList('kyc-list', profile.kyc_submissions || [], (item) => `<div class="rounded-2xl border p-4"><div>${item.document_kind}</div><div class="text-sm text-slate-500">${item.account_type} | ${item.status}</div></div>`);
 
+  renderAvailabilitySlots(profile.availability || []);
+
   qs('profile-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     try {
@@ -64,17 +66,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  qs('availability-form').addEventListener('submit', async (event) => {
+  document.getElementById('add-slot-btn')?.addEventListener('click', () => {
+    renderAvailabilitySlots([
+      ...collectCurrentSlots(),
+      { day_of_week: 1, start_time_utc: '09:00', end_time_utc: '17:00' }
+    ]);
+  });
+
+  qs('availability-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    const slots = collectCurrentSlots();
     try {
-      const slots = JSON.parse(qs('availability_json').value || '[]');
       await apiCall('freelancer.php?action=availability/set', 'POST', { slots });
+      alert('Availability saved.');
       location.reload();
     } catch (error) {
-      alert(error.message.includes('JSON') ? 'Availability JSON is invalid.' : error.message);
+      alert(error.message);
     }
   });
 });
+
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function renderAvailabilitySlots(slots) {
+  const container = document.getElementById('availability-slots');
+  container.innerHTML = slots.map((slot, i) => `
+    <div class="availability-slot grid grid-cols-4 gap-2 items-center" data-index="${i}">
+      <select name="day_of_week" class="rounded-xl border px-3 py-2 text-sm">
+        ${DAYS.map((d, idx) => `<option value="${idx}" ${Number(slot.day_of_week) === idx ? 'selected' : ''}>${d}</option>`).join('')}
+      </select>
+      <input type="time" name="start_time_utc" value="${(slot.start_time_utc || '09:00').substring(0,5)}" class="rounded-xl border px-3 py-2 text-sm">
+      <input type="time" name="end_time_utc" value="${(slot.end_time_utc || '17:00').substring(0,5)}" class="rounded-xl border px-3 py-2 text-sm">
+      <button type="button" class="remove-slot-btn rounded-xl bg-rose-500 px-3 py-2 text-white text-sm">Remove</button>
+    </div>
+  `).join('') || '<p class="text-sm text-slate-500">No slots yet. Click Add to start.</p>';
+
+  container.querySelectorAll('.remove-slot-btn').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.availability-slot').remove());
+  });
+}
+
+function collectCurrentSlots() {
+  return Array.from(document.querySelectorAll('.availability-slot')).map(row => ({
+    day_of_week: parseInt(row.querySelector('[name=day_of_week]').value, 10),
+    start_time_utc: row.querySelector('[name=start_time_utc]').value + ':00',
+    end_time_utc: row.querySelector('[name=end_time_utc]').value + ':00',
+  }));
+}
 
 function renderList(id, items, renderer) {
   qs(id).innerHTML = items.length ? items.map(renderer).join('') : '<p class="text-sm text-slate-500">No records yet.</p>';

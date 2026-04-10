@@ -286,11 +286,11 @@ class MilestoneService
 
             $contract = $this->contracts->getContract((int) $milestone['contract_id']);
 
-            if ($diff > 0 && $diff <= 86400) { // Within 24 hours
+            if ($diff > 0 && $diff <= 86400) { 
                 $this->notifications->send((int) $contract['freelancer_id'], 'deadline_approaching', "Milestone '{$milestone['title']}' is due within 24 hours.");
-            } elseif ($diff < 0) { // Overdue
+            } elseif ($diff < 0) { 
                 $this->audit->log(null, 'milestone_overdue', 'milestone', (int) $milestone['id'], null, ['due_date' => $milestone['due_date']]);
-                $this->contracts->updateContractStatus((int) $milestone['contract_id'], 'active'); // Ensure status is active or alert
+                $this->contracts->updateContractStatus((int) $milestone['contract_id'], 'active'); 
                 $this->notifications->send((int) $contract['client_id'], 'milestone_overdue', "Milestone '{$milestone['title']}' is overdue.");
             }
         }

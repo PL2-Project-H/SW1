@@ -53,8 +53,9 @@
         </form>
         <form id="availability-form" class="glass rounded-3xl border p-6 space-y-4">
           <h2 class="text-xl font-semibold">Availability</h2>
-          <textarea id="availability_json" class="h-32 w-full rounded-2xl border px-4 py-3" placeholder='[{"day_of_week":1,"start_time_utc":"09:00:00","end_time_utc":"12:00:00"}]'></textarea>
-          <button class="rounded-xl bg-amber-500 px-4 py-3 text-white">Save Availability</button>
+          <div id="availability-slots" class="space-y-3"></div>
+          <button type="button" id="add-slot-btn" class="rounded-xl bg-slate-700 px-4 py-2 text-white text-sm">+ Add Time Slot</button>
+          <button type="submit" class="rounded-xl bg-amber-500 px-4 py-3 text-white w-full">Save Availability</button>
         </form>
       </div>
     </div>

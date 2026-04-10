@@ -27,4 +27,11 @@ class AuthController extends BaseController
         $user['notifications'] = $this->notifications->listForUser((int) $user['id']);
         Response::json($user);
     }
+
+    public function clearNotifications(): void
+    {
+        $userId = $this->requireAuth();
+        $this->notifications->clearForUser($userId);
+        Response::json(['message' => 'Notifications cleared']);
+    }
 }

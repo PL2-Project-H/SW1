@@ -12,6 +12,11 @@ class NotificationRepository extends BaseRepository
         return $this->fetchAllRows('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30', [$userId]);
     }
 
+    public function markAllAsRead(int $userId): void
+    {
+        $this->execute('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [$userId]);
+    }
+
     public function existsRecentByType(int $userId, string $type, int $hours): bool
     {
         $row = $this->fetch(

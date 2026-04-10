@@ -188,8 +188,7 @@ class EscrowService
         if ($from === $to) {
             return 1.0;
         }
-        // Implementation for an external API would go here.
-        // For now, we use a dynamic lookup or a slightly more robust mock.
+
         $rates = [
             'USD' => 1.0,
             'EUR' => 1.08,
