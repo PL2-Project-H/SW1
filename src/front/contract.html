@@ -22,6 +22,24 @@
       <button type="button" id="add-milestone-btn" class="rounded-xl bg-slate-600 px-4 py-2 text-white text-sm">+ Add Milestone</button>
       <button type="submit" class="w-full rounded-2xl bg-slate-950 px-4 py-3 text-white">Save Milestones</button>
     </form>
+    <div id="nda-signing-wrap" class="hidden glass mb-8 rounded-3xl border p-6 bg-amber-50">
+      <h2 class="text-2xl font-semibold text-amber-900">Sign Pending NDA</h2>
+      <p class="mt-2 text-sm text-amber-800">Review and sign the Non-Disclosure Agreement to activate your contract.</p>
+      <div id="nda-content" class="mt-4 p-4 bg-white rounded-xl border text-xs text-slate-600 h-32 overflow-y-auto mb-4 italic"></div>
+      <button id="sign-nda-btn" class="rounded-2xl bg-amber-600 px-6 py-3 text-white font-medium">I Digitally Sign this NDA</button>
+    </div>
+
+    <div id="qa-checklist-wrap" class="hidden glass mb-8 rounded-3xl border p-6 bg-emerald-50">
+      <h2 class="text-2xl font-semibold text-emerald-900">Mandatory QA Checklist</h2>
+      <p class="mt-2 text-sm text-emerald-800">You must verify all quality standards before submitting your work.</p>
+      <form id="qa-checklist-form" class="mt-4 space-y-3">
+        <label class="flex items-center gap-3 text-sm"><input type="checkbox" name="standards_met" required> Deliverable meets all technical specifications</label>
+        <label class="flex items-center gap-3 text-sm"><input type="checkbox" name="clean_code" required> Code/Content is professionally formatted and documented</label>
+        <label class="flex items-center gap-3 text-sm"><input type="checkbox" name="no_malware" required> File is free of malicious scripts or non-compliant libraries</label>
+        <button type="submit" class="mt-2 rounded-xl bg-emerald-600 px-6 py-2 text-white text-sm">Submit QA & Unlock Upload</button>
+      </form>
+    </div>
+
     <div id="milestone-detail" class="hidden mb-8 space-y-6"></div>
     <div id="contract-messages-wrap" class="hidden glass mb-8 rounded-3xl border p-6 space-y-4">
       <h2 class="text-2xl font-semibold">Contract messages</h2>

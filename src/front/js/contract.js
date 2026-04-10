@@ -16,17 +16,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   const contracts = contractId ? [await apiCall(`project.php?action=contracts/${contractId}`)] : await apiCall('project.php?action=contracts/active');
   qs('contract-list').innerHTML = contracts.map((contract) => renderContract(contract, user)).join('') || '<p class="text-slate-500">No active contracts.</p>';
 
-  if (contractId && user.role !== 'admin') {
-    const wrap = qs('contract-messages-wrap');
-    wrap.classList.remove('hidden');
-    await loadContractMessages(contractId);
-    qs('contract-message-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = qs('contract_message_input').value.trim();
-      if (!text) return;
-      await apiCall('project.php?action=contracts/message', 'POST', { contract_id: Number(contractId), message: text });
-      qs('contract_message_input').value = '';
-    });
+  if (contractId) {
+    const activeContract = contracts[0];
+    
+    // NDA Logic
+    if (activeContract.status === 'pending_nda') {
+      const ndaWrap = qs('nda-signing-wrap');
+      const ndaContent = qs('nda-content');
+      if (ndaWrap && ndaContent) {
+        ndaWrap.classList.remove('hidden');
+        ndaContent.textContent = activeContract.nda_content || 'Please review the NDA agreement for this project.';
+        qs('sign-nda-btn').onclick = async () => {
+          try {
+            const endpoint = user.role === 'client' ? 'client.php?action=contracts/nda/sign' : 'project.php?action=contracts/nda/sign';
+            await apiCall(endpoint, 'POST', { job_id: activeContract.job_id });
+            alert('NDA Signed.');
+            location.reload();
+          } catch (err) { alert(err.message); }
+        };
+      }
+    }
+
+    if (user.role !== 'admin') {
+      const wrap = qs('contract-messages-wrap');
+      if (wrap) {
+        wrap.classList.remove('hidden');
+        await loadContractMessages(contractId);
+        qs('contract-message-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const text = qs('contract_message_input').value.trim();
+          if (!text) return;
+          await apiCall('project.php?action=contracts/message', 'POST', { contract_id: Number(contractId), message: text });
+          qs('contract_message_input').value = '';
+          await loadContractMessages(contractId);
+        });
+      }
+    }
   }
 
   document.getElementById('add-milestone-btn')?.addEventListener('click', () => addMilestoneRow());
