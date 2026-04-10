@@ -167,7 +167,7 @@ INSERT INTO audit_logs (user_id, action, entity_type, entity_id, ip_address) VAL
 -- (Continuing with 80 more simulation logs in final import...)
 
 -- 9. Tax Rates
-INSERT INTO tax_rates (country, rate) VALUES
+INSERT IGNORE INTO tax_rates (country, rate) VALUES
 ('egypt', 0.14), ('united kingdom', 0.20), ('united states', 0.0), ('spain', 0.21),
 ('japan', 0.10), ('france', 0.20), ('germany', 0.19), ('mexico', 0.16),
 ('china', 0.13), ('australia', 0.10), ('russia', 0.20), ('brazil', 0.17),

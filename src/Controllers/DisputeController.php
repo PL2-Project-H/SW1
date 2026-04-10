@@ -80,7 +80,13 @@ class DisputeController extends BaseController
     {
         $userId = $this->requireAuth();
         $dispute = $this->disputes->get($disputeId);
+        if (!$dispute) {
+            Response::error('Dispute not found', 404);
+        }
         $contract = $this->contracts->getContract((int) $dispute['contract_id']);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
         $messages = $this->disputes->listMessages($disputeId);
         if ($userId === (int) $dispute['assigned_admin']) {
             Response::json($messages);

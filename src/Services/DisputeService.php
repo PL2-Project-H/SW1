@@ -134,14 +134,26 @@ class DisputeService
         }
         $dispute = $this->disputes->get($disputeId);
         $contract = $this->contracts->getContract((int) $dispute['contract_id']);
-        $milestone = $contract['milestones'][0] ?? null;
-        $locked = $milestone ? (new EscrowRepository())->getLockedForMilestone((int) $milestone['id']) : (float) $contract['total_amount'];
+        
+        $locked = 0.0;
+        $activeMilestoneId = null;
+        $escrowRepo = new EscrowRepository();
+        foreach ($contract['milestones'] as $m) {
+            $locked += $escrowRepo->getLockedForMilestone((int) $m['id']);
+            if ($activeMilestoneId === null && $m['status'] === 'in_progress') {
+                $activeMilestoneId = (int) $m['id'];
+            }
+        }
+        if ($locked === 0.0 && empty($contract['milestones'])) {
+            $locked = (float) $contract['total_amount'];
+        }
+
         $clientShare = round($locked * ($clientPct / 100), 2);
         $freelancerShare = round($locked * ($freelancerPct / 100), 2);
         if ($clientShare > 0) {
-            (new EscrowRepository())->createTransaction([
+            $escrowRepo->createTransaction([
                 'contract_id' => $contract['id'],
-                'milestone_id' => $milestone['id'] ?? null,
+                'milestone_id' => $activeMilestoneId,
                 'amount' => $clientShare,
                 'currency' => $contract['currency'],
                 'type' => 'refund',
@@ -149,9 +161,9 @@ class DisputeService
             ]);
         }
         if ($freelancerShare > 0) {
-            (new EscrowRepository())->createTransaction([
+            $escrowRepo->createTransaction([
                 'contract_id' => $contract['id'],
-                'milestone_id' => $milestone['id'] ?? null,
+                'milestone_id' => $activeMilestoneId,
                 'amount' => $freelancerShare,
                 'currency' => $contract['currency'],
                 'type' => 'release',

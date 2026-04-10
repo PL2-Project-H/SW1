@@ -234,7 +234,8 @@ class MilestoneService
         $contract = $this->contracts->getContract((int) $milestone['contract_id']);
         $this->escrow->releaseForMilestone($contract, $milestone, $auto);
         $this->reputation->calculate((int) $contract['freelancer_id']);
-        $this->audit->log((int) $_SESSION['user_id'], $auto ? 'auto_approval' : 'milestone_approved', 'milestone', $milestoneId, ['status' => 'submitted'], ['status' => $status]);
+        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+        $this->audit->log($userId, $auto ? 'auto_approval' : 'milestone_approved', 'milestone', $milestoneId, ['status' => 'submitted'], ['status' => $status]);
     }
 
     public function confirmCompletion(int $milestoneId): void
@@ -298,11 +299,19 @@ class MilestoneService
     public function autoApprove(): void
     {
         $rows = $this->milestones->listSubmittedPastWindow();
+        $sessionUserIdChanged = false;
+        if (!isset($_SESSION['user_id'])) {
+            $_SESSION['user_id'] = null;
+            $sessionUserIdChanged = true;
+        }
         foreach ($rows as $row) {
             $this->approve((int) $row['id'], true);
             $contract = $this->contracts->getContract((int) $row['contract_id']);
             $this->notifications->send((int) $contract['client_id'], 'auto_approval', 'A milestone was auto-approved after 5 days.');
             $this->notifications->send((int) $contract['freelancer_id'], 'auto_approval', 'Your milestone was auto-approved after 5 days.');
+        }
+        if ($sessionUserIdChanged) {
+            unset($_SESSION['user_id']);
         }
     }
 }

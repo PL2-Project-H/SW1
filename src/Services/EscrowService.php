@@ -74,7 +74,8 @@ class EscrowService
             'type' => 'release',
             'status' => 'pending',
         ]);
-        $this->audit->log((int) $_SESSION['user_id'], $auto ? 'escrow_auto_release' : 'escrow_release', 'escrow_transaction', $id, null, ['amount' => $amount]);
+        $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+        $this->audit->log($userId, $auto ? 'escrow_auto_release' : 'escrow_release', 'escrow_transaction', $id, null, ['amount' => $amount]);
         $this->updateFee((int) $contract['client_id'], (int) $contract['freelancer_id'], $amount);
         return $id;
     }
