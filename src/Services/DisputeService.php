@@ -80,7 +80,7 @@ class DisputeService
             'snapshots' => $snapshots->fetchAll(),
             'audit_logs' => $auditLogs->fetchAll(),
         ];
-        $dir = dirname(__DIR__, 2) . '/storage/evidence';
+        $dir = dirname(__DIR__) . '/storage/evidence';
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             Response::error('Evidence directory could not be created', 500);
         }

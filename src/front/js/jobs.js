@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     qs('search-panel').classList.remove('hidden');
   }
 
-  if (user.role === 'freelancer') {
+  if (user.role === 'client') {
     qs('specialist-search-actions').innerHTML = '<button id="find-specialists-btn" type="button" class="rounded-2xl bg-slate-900 px-4 py-3 text-white">Find Specialists</button>';
     qs('find-specialists-btn')?.addEventListener('click', async () => {
       const rankingQuery = new URLSearchParams({

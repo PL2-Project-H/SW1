@@ -22,6 +22,11 @@ class DisputeRepository extends BaseRepository
         return $this->fetch('SELECT * FROM disputes WHERE id = ?', [$id]);
     }
 
+    public function listAll(): array
+    {
+        return $this->fetchAllRows('SELECT * FROM disputes ORDER BY created_at DESC');
+    }
+
     public function listMine(int $userId): array
     {
         return $this->fetchAllRows(

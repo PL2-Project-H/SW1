@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const milestone = await apiCall(`project.php?action=milestones/${milestoneId}`);
       await renderMilestoneDetail(milestone, user);
+      // Show the top-level QA checklist panel for freelancers with in-progress milestones
+      if (user.role === 'freelancer' && milestone.status === 'in_progress') {
+        const qaWrap = qs('qa-checklist-wrap');
+        if (qaWrap && !milestone.qa_submission) {
+          qaWrap.classList.remove('hidden');
+        }
+      }
     } catch (e) {
       console.error('Failed to load milestone detail', e);
     }
@@ -52,7 +59,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
     }
+
+    // Pre-fill milestone builder with current contract_id
+    const buildInput = qs('build_contract_id');
+    if (buildInput && !buildInput.value) {
+      buildInput.value = contractId;
+    }
   }
+
+  // Wire up top-level QA checklist form (shown when freelancer opens a milestone view)
+  qs('qa-checklist-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const params2 = new URLSearchParams(location.search);
+    const mId = params2.get('milestone_id');
+    if (!mId) { alert('No milestone selected.'); return; }
+    const formData = new FormData(e.target);
+    const checklist = {};
+    formData.forEach((value, key) => { checklist[key] = true; });
+    try {
+      await apiCall('project.php?action=contracts/qa-checklist/submit', 'POST', { milestone_id: Number(mId), checklist });
+      qs('qa-checklist-wrap').classList.add('hidden');
+      alert('QA Checklist submitted! You may now upload your deliverable.');
+    } catch (err) { alert(err.message); }
+  });
 
   document.getElementById('add-milestone-btn')?.addEventListener('click', () => addMilestoneRow());
 

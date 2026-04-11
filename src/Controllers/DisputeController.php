@@ -38,6 +38,10 @@ class DisputeController extends BaseController
     public function mine(): void
     {
         $userId = $this->requireAuth();
+        if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'dispute_mediator') {
+            Response::json($this->disputes->listAll());
+            return;
+        }
         Response::json($this->disputes->listMine($userId));
     }
 
@@ -79,7 +83,7 @@ class DisputeController extends BaseController
         }
         $contract = $this->contracts->getContract((int) $dispute['contract_id']);
         $allowed = [(int) $contract['client_id'], (int) $contract['freelancer_id'], (int) $dispute['assigned_admin']];
-        if (!in_array($userId, $allowed, true)) {
+        if (!in_array($userId, $allowed, true) && ($_SESSION['admin_role'] ?? '') !== 'dispute_mediator') {
             Response::error('Forbidden', 403);
         }
         $id = $this->disputes->addMessage($disputeId, $userId, $message);

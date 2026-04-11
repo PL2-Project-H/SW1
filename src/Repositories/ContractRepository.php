@@ -53,6 +53,13 @@ class ContractRepository extends BaseRepository
         }
         $contract['milestones'] = $this->fetchAllRows('SELECT * FROM milestones WHERE contract_id = ? ORDER BY order_index', [$contractId]);
         $contract['amendments'] = $this->fetchAllRows('SELECT * FROM contract_amendments WHERE contract_id = ? ORDER BY created_at DESC', [$contractId]);
+        // Include NDA content for the signing banner
+        $nda = $this->fetch('SELECT content, client_signed_at, freelancer_signed_at FROM ndas WHERE job_id = ? ORDER BY id DESC LIMIT 1', [$contract['job_id']]);
+        if ($nda) {
+            $contract['nda_content'] = $nda['content'];
+            $contract['nda_client_signed'] = !empty($nda['client_signed_at']);
+            $contract['nda_freelancer_signed'] = !empty($nda['freelancer_signed_at']);
+        }
         return $contract;
     }
 

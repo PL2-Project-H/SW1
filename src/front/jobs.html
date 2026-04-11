@@ -25,13 +25,13 @@
         <input name="title" class="rounded-2xl border px-4 py-3" placeholder="Job title" required>
         <select id="job-niche" name="niche" class="rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
         <textarea name="description" class="md:col-span-2 h-28 rounded-2xl border px-4 py-3" placeholder="Description"></textarea>
-        <input name="budget" class="rounded-2xl border px-4 py-3" placeholder="Budget">
+        <input name="budget" class="rounded-2xl border px-4 py-3" placeholder="Budget" required>
         <select name="currency" class="rounded-2xl border px-4 py-3">
           <option value="USD">USD</option>
           <option value="EUR">EUR</option>
           <option value="GBP">GBP</option>
         </select>
-        <input name="deadline" type="datetime-local" class="rounded-2xl border px-4 py-3">
+        <input name="deadline" type="datetime-local" class="rounded-2xl border px-4 py-3" required>
         <select name="visibility" class="rounded-2xl border px-4 py-3"><option value="public">Public</option><option value="invitation">Invitation Only</option></select>
         <input name="invitees" class="rounded-2xl border px-4 py-3" placeholder="Invite freelancer IDs or emails">
         <div id="translation-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-3">
