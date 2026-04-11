@@ -48,7 +48,6 @@
       letter-spacing: 0.05em;
     }
 
-
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -110,11 +109,20 @@
       <button id="trigger-file-dispute" class="btn-danger">+ File Dispute</button>
     </div>
 
-    <!-- Layout Grid -->
-    <div
-      style="display: grid; gap: 2rem; grid-template-columns: 1fr; @media(min-width:1024px){ grid-template-columns: 1fr 2fr; }">
 
-      <!-- Left Column: Dispute List -->
+    <div
+      style="display: grid; gap: 2rem; grid-template-columns: 1fr; @media(min-width:1024px){ grid-template-columns: 2fr 1fr; }">
+
+
+      <section>
+        <div id="dispute-detail">
+          <div class="empty-state">
+            <p>Select a case from the active list to enter the safe-room.</p>
+          </div>
+        </div>
+      </section>
+
+
       <section>
         <div class="card" style="position: sticky; top: 100px;">
           <div class="card-header">
@@ -126,19 +134,10 @@
         </div>
       </section>
 
-      <!-- Right Column: Dispute Safe-Room -->
-      <section>
-        <div id="dispute-detail">
-          <div class="empty-state">
-            <p>Select a case from the active list to enter the safe-room.</p>
-          </div>
-        </div>
-      </section>
-
     </div>
   </main>
 
-  <!-- Slide-over Modal for Data Entry -->
+
   <div id="dispute-modal" class="modal-overlay">
     <div class="slide-over">
       <button id="close-modal" class="modal-close">&times;</button>
