@@ -1,19 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard | SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
 </head>
+
 <body>
-  <div class="shell px-6 py-6">
-    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
-    <h1 id="dashboard-title" class="mb-6 text-4xl font-semibold"></h1>
-    <section id="dashboard-grid" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></section>
-  </div>
+  <main class="shell">
+    <div id="dashboard-header" style="margin-bottom: 2rem;">
+      <h1 class="page-header" id="dashboard-title">Good morning</h1>
+      <span id="role-badge" class="badge"></span>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="margin-bottom: 3rem;">
+      <div id="quick-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <!-- Injected via JS based on role -->
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div style="margin-bottom: 3rem;">
+      <h2 class="section-title">Overview</h2>
+      <section id="dashboard-grid"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;"></section>
+    </div>
+
+    <!-- Notifications preview -->
+    <div>
+      <h2 class="section-title">Recent Activity</h2>
+      <div id="dashboard-notifications"></div>
+    </div>
+  </main>
+
   <script src="js/app.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
+
 </html>

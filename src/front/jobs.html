@@ -1,60 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jobs | SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    .search-pill {
+      display: flex;
+      align-items: center;
+      background: var(--card-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+
+    .search-pill input,
+    .search-pill select {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--ink);
+      padding: 0.8rem 1.5rem;
+      outline: none;
+    }
+
+    .search-pill select {
+      border-left: 1px solid var(--border-input);
+      border-right: 1px solid var(--border-input);
+      border-radius: 0;
+    }
+
+    .search-pill input::placeholder {
+      color: rgba(107, 101, 96, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .search-pill {
+        flex-direction: column;
+        border-radius: var(--radius-card);
+        padding: 0;
+      }
+
+      .search-pill input,
+      .search-pill select {
+        width: 100%;
+        border-left: none;
+        border-right: none;
+        border-bottom: 1px solid var(--border-input);
+      }
+
+      .search-pill input:last-child {
+        border-bottom: none;
+      }
+
+      .search-pill select {
+        border-radius: 0;
+      }
+    }
+
+
+    .job-card {
+      text-decoration: none;
+      display: block;
+      position: relative;
+    }
+
+    .job-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+      padding-right: 4rem;
+
+    }
+
+    .job-card-desc {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .job-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .job-card-budget {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+
+    #job-form-wrap {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease, margin 0.5s ease;
+      margin-bottom: 0;
+    }
+
+    #job-form-wrap.show {
+      max-height: 2000px;
+      opacity: 1;
+      margin-bottom: 2rem;
+    }
+
+    .niche-fields {
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.4s ease;
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .niche-fields.show {
+      max-height: 500px;
+      opacity: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="shell px-6 py-6">
-    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
-    <section id="search-panel" class="hidden glass mb-8 rounded-3xl border p-6">
-      <div class="grid gap-4 md:grid-cols-3">
-        <input id="search_keyword" class="rounded-2xl border px-4 py-3" placeholder="Keyword">
-        <select id="search_niche" class="rounded-2xl border px-4 py-3"><option value="">All niches</option><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
-        <input id="search_budget" class="rounded-2xl border px-4 py-3" placeholder="Max budget">
+  <main class="shell">
+
+    <div class="header-layout">
+      <h1 class="page-header m-0">Discover Opportunities</h1>
+      <button id="post-job-toggle" class="btn-primary hidden">Post a Job</button>
+    </div>
+
+    <section id="job-form-wrap">
+      <div class="card">
+        <div class="card-header">
+          <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Create a Job Listing</h2>
+        </div>
+        <div class="card-body">
+          <form id="job-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="sh-label">Job title</label>
+                <input name="title" class="sh-input" placeholder="Title" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Specialty Niche</label>
+                <select id="job-niche" name="niche" class="sh-select">
+                  <option value="data_science">Data Science</option>
+                  <option value="legal">Legal</option>
+                  <option value="translation">Translation</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="sh-label">Description</label>
+              <textarea name="description" class="sh-textarea" placeholder="Detail the scope of work..."></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="sh-label">Budget</label>
+                <input name="budget" class="sh-input" placeholder="e.g. 5000" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Currency</label>
+                <select name="currency" class="sh-select">
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Deadline</label>
+                <input name="deadline" type="datetime-local" class="sh-input" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Visibility</label>
+                <select name="visibility" class="sh-select">
+                  <option value="public">Public</option>
+                  <option value="invitation">Invitation Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="sh-label">Invitees <span
+                  style="text-transform:none;letter-spacing:0">(optional)</span></label>
+              <input name="invitees" class="sh-input" placeholder="Freelancer IDs or emails">
+            </div>
+
+            <div id="translation-fields" class="niche-fields form-grid">
+              <div class="form-group">
+                <label class="sh-label">Source language</label>
+                <input name="source_language" class="sh-input" placeholder="e.g. EN">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Target language</label>
+                <input name="target_language" class="sh-input" placeholder="e.g. JA">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Word count</label>
+                <input name="word_count" class="sh-input" placeholder="Estimate">
+              </div>
+            </div>
+
+            <div id="data-fields" class="niche-fields form-grid">
+              <div class="form-group">
+                <label class="sh-label">Data stack</label>
+                <input name="data_stack" class="sh-input" placeholder="Python, PyTorch...">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Dataset size</label>
+                <input name="dataset_size" class="sh-input" placeholder="e.g. 50GB">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Deliverable format</label>
+                <input name="deliverable_format" class="sh-input" placeholder="Notebook, API...">
+              </div>
+            </div>
+
+            <div id="legal-fields" class="niche-fields form-grid">
+              <div class="form-group">
+                <label class="sh-label">Jurisdiction</label>
+                <input name="jurisdiction" class="sh-input" placeholder="e.g. US/NY">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Case type</label>
+                <input name="case_type" class="sh-input" placeholder="IP, Corporate...">
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;padding-top:1.5rem;">
+                <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;">
+                  <input type="checkbox" name="confidentiality_required" value="1"> Confidentiality required
+                </label>
+              </div>
+            </div>
+
+            <div id="form-err"></div>
+            <button class="btn-primary" style="width:100%;margin-top:1rem;">Publish Listing</button>
+          </form>
+        </div>
       </div>
-      <div id="specialist-search-actions" class="mt-4"></div>
     </section>
-    <section id="specialist-results" class="hidden mb-8 grid gap-5"></section>
-    <section id="job-form-wrap" class="hidden glass mb-8 rounded-3xl border p-6">
-      <h2 class="mb-4 text-2xl font-semibold">Post a Job</h2>
-      <form id="job-form" class="grid gap-4 md:grid-cols-2">
-        <input name="title" class="rounded-2xl border px-4 py-3" placeholder="Job title" required>
-        <select id="job-niche" name="niche" class="rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
-        <textarea name="description" class="md:col-span-2 h-28 rounded-2xl border px-4 py-3" placeholder="Description"></textarea>
-        <input name="budget" class="rounded-2xl border px-4 py-3" placeholder="Budget" required>
-        <select name="currency" class="rounded-2xl border px-4 py-3">
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="GBP">GBP</option>
+
+    <section id="search-panel" class="hidden">
+      <div class="search-pill">
+        <input id="search_keyword" placeholder="Search keywords...">
+        <select id="search_niche">
+          <option value="">All niches</option>
+          <option value="data_science">Data Science</option>
+          <option value="legal">Legal</option>
+          <option value="translation">Translation</option>
+          <option value="other">Other</option>
         </select>
-        <input name="deadline" type="datetime-local" class="rounded-2xl border px-4 py-3" required>
-        <select name="visibility" class="rounded-2xl border px-4 py-3"><option value="public">Public</option><option value="invitation">Invitation Only</option></select>
-        <input name="invitees" class="rounded-2xl border px-4 py-3" placeholder="Invite freelancer IDs or emails">
-        <div id="translation-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-3">
-          <input name="source_language" class="rounded-2xl border px-4 py-3" placeholder="Source language">
-          <input name="target_language" class="rounded-2xl border px-4 py-3" placeholder="Target language">
-          <input name="word_count" class="rounded-2xl border px-4 py-3" placeholder="Word count">
-        </div>
-        <div id="data-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-3">
-          <input name="data_stack" class="rounded-2xl border px-4 py-3" placeholder="Data stack">
-          <input name="dataset_size" class="rounded-2xl border px-4 py-3" placeholder="Dataset size">
-          <input name="deliverable_format" class="rounded-2xl border px-4 py-3" placeholder="Deliverable format">
-        </div>
-        <div id="legal-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-3">
-          <input name="jurisdiction" class="rounded-2xl border px-4 py-3" placeholder="Jurisdiction">
-          <input name="case_type" class="rounded-2xl border px-4 py-3" placeholder="Case type">
-          <label class="flex items-center gap-2 rounded-2xl border px-4 py-3"><input type="checkbox" name="confidentiality_required" value="1"> Confidentiality required</label>
-        </div>
-        <button class="md:col-span-2 rounded-2xl bg-slate-950 px-4 py-3 text-white">Create Job</button>
-      </form>
+        <input id="search_budget" type="number" placeholder="Max budget">
+        <button id="find-specialists-btn" type="button" class="btn-primary hidden"
+          style="margin-left: 0.5rem; border-radius: 9999px;">
+          Find Specialists
+        </button>
+      </div>
     </section>
-    <section id="job-results" class="grid gap-5"></section>
-  </div>
+
+    <!-- Results for Specialists via API query -->
+    <section id="specialist-results" class="hidden" style="margin-bottom: 2rem; display: grid; gap: 1.5rem;"></section>
+
+    <section id="job-results" style="display: grid; gap: 1.5rem;"></section>
+
+  </main>
+
   <script src="js/app.js"></script>
   <script src="js/jobs.js"></script>
 </body>
+
 </html>

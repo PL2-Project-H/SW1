@@ -1,11 +1,18 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkSession();
+  if (!user) return;
   const contractId = new URLSearchParams(location.search).get('contract_id');
   
+  const statsGrid = qs('stats-grid');
+  const ledgerBox = qs('ledger-box');
+
   if (!contractId) {
-    document.body.innerHTML += '<div class="shell px-6 py-6"><p class="text-rose-600 mt-20 text-center text-lg">No contract selected. <a href="contract.html" class="underline">Go to Contracts</a></p></div>';
+    statsGrid.innerHTML = ``;
+    ledgerBox.innerHTML = `<div class="empty-state"><p>No contract context selected.</p></div>`;
     return;
   }
+
+  showLoading(statsGrid);
 
   try {
     const [balance, ledger, fees, tax, contract] = await Promise.allSettled([
@@ -24,17 +31,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const taxData = resolved(tax);
     const contractData = resolved(contract);
 
-    qs('balance-box').innerHTML = balanceData
-      ? `<div class="metric-card glass rounded-3xl p-6"><p class="text-sm text-slate-500">Pending Payout</p><p class="text-2xl font-semibold mt-2">$${balanceData.pending_balance}</p><p class="text-sm text-slate-500 mt-2">Cleared: $${balanceData.cleared_balance}</p></div>`
-      : `<div class="metric-card glass rounded-3xl p-6 text-rose-600">Balance unavailable</div>`;
+    stopLoading(statsGrid);
 
-    qs('fee-box').innerHTML = feesData
-      ? `<div class="metric-card glass rounded-3xl p-6"><p class="text-sm text-slate-500">Platform Fee</p><p class="text-2xl font-semibold mt-2">${feesData.fee_percentage}%</p><p class="text-sm text-slate-500 mt-2">Lifetime value: $${feesData.lifetime_value}</p></div>`
-      : `<div class="metric-card glass rounded-3xl p-6 text-rose-600">Fee data unavailable</div>`;
+    
+    statsGrid.innerHTML = `
+      ${balanceData ? `
+        <div class="hcard">
+          <div class="hcard-eyebrow">Pending Escrow</div>
+          <div class="hcard-amount" style="font-size:2.2rem; margin-top:0.5rem;">$${parseFloat(balanceData.pending_balance).toLocaleString()}</div>
+          <div class="hcard-footer" style="padding-top:0.75rem; border-top:1px solid var(--border);">
+            <div style="font-size:0.85rem; color:var(--muted);">Cleared: $${parseFloat(balanceData.cleared_balance).toLocaleString()}</div>
+          </div>
+        </div>
+      ` : ''}
 
-    qs('tax-box').innerHTML = taxData
-      ? `<div class="metric-card glass rounded-3xl p-6"><p class="text-sm text-slate-500">Freelancer Net</p><p class="text-2xl font-semibold mt-2">$${taxData.freelancer_net}</p><p class="text-sm text-slate-500 mt-2">Tax on fee: $${taxData.tax_on_fee}</p></div>`
-      : `<div class="metric-card glass rounded-3xl p-6 text-rose-600">Tax data unavailable</div>`;
+      ${feesData ? `
+        <div class="hcard">
+          <div class="hcard-eyebrow">Platform Fee</div>
+          <div class="hcard-amount" style="font-size:2.2rem; margin-top:0.5rem;">${feesData.fee_percentage}%</div>
+          <div class="hcard-footer" style="padding-top:0.75rem; border-top:1px solid var(--border);">
+            <div style="font-size:0.85rem; color:var(--muted);">Lifetime Value: $${parseFloat(feesData.lifetime_value).toLocaleString()}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${taxData ? `
+        <div class="hcard">
+          <div class="hcard-eyebrow">Projected Freelancer Net</div>
+          <div class="hcard-amount" style="font-size:2.2rem; margin-top:0.5rem;">$${parseFloat(taxData.freelancer_net).toLocaleString()}</div>
+          <div class="hcard-footer" style="padding-top:0.75rem; border-top:1px solid var(--border);">
+            <div style="font-size:0.85rem; color:var(--muted);">Tax on fee: $${parseFloat(taxData.tax_on_fee).toLocaleString()}</div>
+          </div>
+        </div>
+      ` : ''}
+    `;
 
     if (contractData) {
       const pct = Number(contractData.partial_release_pct || 0);
@@ -42,45 +72,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       const escrowMilestonesEl = qs('escrow-milestones');
       if (user.role === 'client' && pct > 0 && milestones.length) {
         escrowMilestonesEl.innerHTML = `
-          <div class="glass rounded-3xl border p-6">
-            <h3 class="text-lg font-semibold">Partial Release (${pct}%)</h3>
-            <div class="mt-4 flex flex-wrap gap-2">
-              ${milestones.filter(m => m.status === 'submitted').map(m =>
-                `<button onclick="escrowPartial(${m.id})" class="rounded-lg bg-violet-600 px-3 py-2 text-sm text-white">Milestone #${m.id} — ${m.title}</button>`
-              ).join('') || '<span class="text-slate-500 text-sm">No submitted milestones.</span>'}
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+              <h3 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; margin-bottom:1rem;">Partial Release Configuration (${pct}%)</h3>
+              <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                ${milestones.filter(m => m.status === 'submitted').map(m =>
+                  `<button onclick="escrowPartial(${m.id})" class="btn-primary" style="background:#8b5cf6;">Release Phase #${m.id}</button>`
+                ).join('') || '<span style="font-size:0.85rem; color:var(--muted);">No payloads available for direct partial release.</span>'}
+              </div>
             </div>
           </div>`;
       }
     }
 
-    if (ledgerData) {
-      qs('ledger-box').innerHTML = Object.entries(ledgerData).map(([currency, group]) => `
-        <div class="glass rounded-3xl border p-5">
-          <h3 class="text-xl font-semibold">${currency} Ledger</h3>
-          <p class="text-sm text-slate-500">Total: ${group.total} ${currency}</p>
-          <div class="mt-4 space-y-2">
+    if (ledgerData && Object.keys(ledgerData).length > 0) {
+      ledgerBox.innerHTML = Object.entries(ledgerData).map(([currency, group]) => `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700;">${currency} Audit Trail</h3>
+          <p style="font-size:0.85rem; color:var(--muted); margin-top:0.25rem;">Cumulative Total: ${parseFloat(group.total).toLocaleString()} ${currency}</p>
+          
+          <div class="timeline">
             ${group.transactions.map(tx => `
-              <div class="rounded-xl border p-3 text-sm flex justify-between">
-                <span class="font-medium capitalize">${tx.type}</span>
-                <span>${tx.amount} ${tx.currency}</span>
-                <span class="text-slate-500">≈ $${tx.usd_equivalent} USD</span>
-                <span class="badge ${tx.status === 'cleared' ? 'badge-open' : 'badge-warning'}">${tx.status}</span>
-              </div>`).join('')}
+              <div class="timeline-item ${tx.status === 'cleared' ? 'cleared' : ''}">
+                <div class="card" style="padding: 1rem; border-radius: 8px;">
+                  <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                      <div style="font-weight:700; font-size:1.1rem; text-transform:capitalize;">${tx.type}</div>
+                      <div style="font-size:0.85rem; color:var(--muted); margin-top:0.25rem;">Approx. $${parseFloat(tx.usd_equivalent).toLocaleString()} USD</div>
+                    </div>
+                    <div style="text-align:right;">
+                      <div style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700;">${parseFloat(tx.amount).toLocaleString()}</div>
+                      <span class="badge ${tx.status === 'cleared' ? 'badge-open' : 'badge-warning'}" style="margin-top:0.25rem;">${tx.status}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
-      `).join('') || '<p class="text-slate-500">No transactions yet.</p>';
+      `).join('');
+    } else {
+      ledgerBox.innerHTML = `<div class="empty-state"><p>No transactions registered on this ledger.</p></div>`;
     }
 
   } catch (err) {
-    document.getElementById('balance-box').innerHTML = `<div class="glass rounded-3xl p-6 text-rose-600">Failed to load escrow data: ${err.message}</div>`;
+    stopLoading(statsGrid);
+    statsGrid.innerHTML = `<div class="empty-state"><p>Failed to load escrow data: ${err.message}</p></div>`;
   }
 });
 
 async function escrowPartial(milestoneId) {
   try {
+    document.body.style.opacity = '0.5';
     await apiCall('escrow.php?action=partial-release', 'POST', { milestone_id: milestoneId });
     location.reload();
   } catch (e) {
+    document.body.style.opacity = '1';
     alert(e.message);
   }
 }

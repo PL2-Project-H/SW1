@@ -1,107 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin | SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    .table-container {
+      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-container .tr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-input);
+      font-size: 0.9rem;
+    }
+
+    .table-container .tr:last-child {
+      border-bottom: none;
+    }
+
+    .table-container .tr:nth-child(even) {
+      background: rgba(13, 13, 13, 0.02);
+    }
+
+    .toggle-btn {
+      width: 100%;
+      text-align: left;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      padding: 1rem 1.5rem;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .toggle-btn:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-wrapper {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+
+    .toggle-btn.open {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-color: transparent;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="shell px-6 py-6">
-    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
-    <div class="space-y-8">
-      <section><h2 class="mb-4 text-2xl font-semibold">Dashboard</h2><div id="admin-dashboard" class="grid gap-4 md:grid-cols-3"></div></section>
-      
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="users-table">
-          Users <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="users-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
 
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="user-moderation">
-          User Moderation <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="user-moderation" class="hidden mt-4">
-          <div class="glass rounded-3xl border p-6">
-            <p class="mb-4 text-sm text-slate-600">Flag or sanction by user ID (tech support / mediator roles).</p>
-            <div class="grid gap-4 md:grid-cols-2">
-              <form id="flag-user-form" class="space-y-3 rounded-2xl border p-4">
-                <h3 class="font-semibold">Flag user</h3>
-                <input name="user_id" type="number" min="1" class="w-full rounded-xl border px-3 py-2" placeholder="User ID" required>
-                <input name="reason" class="w-full rounded-xl border px-3 py-2" placeholder="Reason" required>
-                <button type="submit" class="w-full rounded-xl bg-amber-600 px-4 py-2 text-white">Submit flag</button>
-              </form>
-              <form id="sanction-user-form" class="space-y-3 rounded-2xl border p-4">
-                <h3 class="font-semibold">Sanction user</h3>
-                <input name="user_id" type="number" min="1" class="w-full rounded-xl border px-3 py-2" placeholder="User ID" required>
-                <select name="level" class="w-full rounded-xl border px-3 py-2" required>
-                  <option value="warn">Warning</option>
-                  <option value="limit">Limited access</option>
-                  <option value="ban">Permanent ban</option>
-                </select>
-                <input name="reason" class="w-full rounded-xl border px-3 py-2" placeholder="Reason" required>
-                <button type="submit" class="w-full rounded-xl bg-rose-700 px-4 py-2 text-white">Apply sanction</button>
-              </form>
+  <main class="shell">
+    <h1 class="page-header m-0">Platform Administration</h1>
+    <p style="font-size:0.9rem; color:var(--muted); margin-top:0.25rem; margin-bottom: 2rem;">Manage network integrity,
+      active queues, and system audits.</p>
+
+    <section>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin-bottom:1rem;">Dashboard
+      </h2>
+      <div id="admin-dashboard"
+        style="display:grid; gap:1.5rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));"></div>
+    </section>
+
+    <!-- Users -->
+    <section>
+      <button class="toggle-btn" data-target="users-table-wrap">Registered Users <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="users-table-wrap" class="hidden section-wrapper">
+        <div id="users-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- User Moderation (Manual Interface) -->
+    <section>
+      <button class="toggle-btn" data-target="user-moderation">Safety Commands <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="user-moderation" class="hidden section-wrapper" style="padding:1.5rem;">
+        <p style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--muted);">Flag or sanction by user ID to limit or
+          ban accounts violating platform conditions.</p>
+        <div
+          style="display:grid; gap:2rem; grid-template-columns:1fr; @media(min-width:768px){grid-template-columns:1fr 1fr;}">
+          <form id="flag-user-form" class="card" style="box-shadow:none;">
+            <div class="card-body">
+              <h3 style="font-weight:700; margin-bottom:1rem;">Flag User</h3>
+              <div class="form-group"><input name="user_id" type="number" min="1" class="sh-input" placeholder="User ID"
+                  required></div>
+              <div class="form-group"><input name="reason" class="sh-input" placeholder="Reason for flag" required>
+              </div>
+              <button class="btn-secondary"
+                style="width:100%; border-color:var(--warning); color:var(--warning);">Attach Flag</button>
             </div>
+          </form>
+          <form id="sanction-user-form" class="card" style="box-shadow:none;">
+            <div class="card-body">
+              <h3 style="font-weight:700; margin-bottom:1rem;">Deploy Sanction</h3>
+              <div class="form-group"><input name="user_id" type="number" min="1" class="sh-input" placeholder="User ID"
+                  required></div>
+              <div class="form-group">
+                <select name="level" class="sh-select" required>
+                  <option value="warn">Warning</option>
+                  <option value="limit">Limited Access</option>
+                  <option value="ban">Permanent Ban</option>
+                </select>
+              </div>
+              <div class="form-group"><input name="reason" class="sh-input" placeholder="Reason" required></div>
+              <button class="btn-danger" style="width:100%;">Execute Sanction Request</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Credentials Queue -->
+    <section>
+      <button class="toggle-btn" data-target="credentials-wrap">Credential Verification Queue <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="credentials-wrap" class="hidden section-wrapper">
+        <div id="credentials-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- KYC Queue -->
+    <section>
+      <button class="toggle-btn" data-target="kyc-wrap">KYC Verification Queue <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="kyc-wrap" class="hidden section-wrapper">
+        <div id="kyc-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- Disputes Queue -->
+    <section>
+      <button class="toggle-btn" data-target="dispute-wrap">Dispute Inbox <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="dispute-wrap" class="hidden section-wrapper">
+        <div id="dispute-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- Revenue Reports -->
+    <section>
+      <button class="toggle-btn" data-target="reports-wrap">Market Intelligence <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="reports-wrap" class="hidden section-wrapper">
+        <div id="reports-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- Audit Trails -->
+    <section>
+      <button class="toggle-btn" data-target="audit-wrap">Operational Audit Trail <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="audit-wrap" class="hidden section-wrapper">
+        <div id="audit-table" class="table-container"></div>
+      </div>
+    </section>
+
+    <!-- Archived Comms -->
+    <section>
+      <button class="toggle-btn" data-target="archive-wrap">Archived Communications <span
+          style="font-size:0.8rem;color:var(--muted)">▼</span></button>
+      <div id="archive-wrap" class="hidden section-wrapper">
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-input);">
+          <div style="display:flex; gap:0.5rem;">
+            <input id="archive-search" class="sh-input" placeholder="Search archive terms...">
+            <button id="archive-refresh" class="btn-primary">Search</button>
           </div>
         </div>
-      </section>
+        <div id="archive-table" class="table-container"></div>
+      </div>
+    </section>
 
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="credentials-table">
-          Credentials Queue <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="credentials-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
+    <section style="display:flex; gap:1rem; margin-top:3rem;">
+      <button id="rebuild-index" class="btn-secondary" style="background:#fff;">Trigger Index Rebuild</button>
+      <button id="send-digest" class="btn-primary" style="background:var(--success);">Dispatch Recommendations</button>
+    </section>
 
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="kyc-table">
-          KYC Queue <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="kyc-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
+  </main>
 
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="dispute-table">
-          Disputes <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="dispute-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
-
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="reports-table">
-          Niche Reports <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="reports-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
-
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="audit-table">
-          Audit Trail <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="audit-table" class="hidden mt-4 grid gap-3"></div>
-      </section>
-
-      <section>
-        <button class="toggle-btn w-full text-left text-2xl font-semibold py-3 border-b flex justify-between items-center" data-target="archive-section">
-          Archived Messages <span class="text-slate-400 text-base">▼</span>
-        </button>
-        <div id="archive-section" class="hidden mt-4">
-          <div class="mb-4 flex gap-3">
-            <input id="archive-search" class="rounded-2xl border px-4 py-3" placeholder="Search archived messages">
-            <button id="archive-refresh" class="rounded-2xl bg-slate-900 px-4 py-3 text-white">Search</button>
-          </div>
-          <div id="archive-table" class="grid gap-3"></div>
-        </div>
-      </section>
-
-      <section class="flex gap-4"><button id="rebuild-index" class="rounded-2xl bg-slate-950 px-4 py-3 text-white">Rebuild Index</button><button id="send-digest" class="rounded-2xl bg-emerald-600 px-4 py-3 text-white">Send Weekly Digest</button></section>
-    </div>
-  </div>
   <script src="js/app.js"></script>
   <script src="js/admin.js"></script>
 </body>
+
 </html>

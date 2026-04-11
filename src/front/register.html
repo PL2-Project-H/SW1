@@ -1,242 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register | SpecialistHub</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
   <style>
     body {
-      font-family: 'DM Sans', sans-serif;
-      background-color: #f5f2ec;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+      margin: 0;
     }
-    body::before {
+
+    .panel-left {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 50% at 40% 50%, rgba(201, 168, 76, 0.15) 0%, transparent 70%),
+        linear-gradient(160deg, #1a1712 0%, #0d0d0d 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem;
+      min-height: 100vh;
+      animation: panelIn 0.7s ease both;
+    }
+
+    @keyframes panelIn {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .panel-deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 76, 0.12);
+    }
+
+    .panel-deco-circle-1 {
+      width: 400px;
+      height: 400px;
+      top: -120px;
+      right: -120px;
+    }
+
+    .panel-deco-circle-2 {
+      width: 240px;
+      height: 240px;
+      bottom: 5%;
+      left: -60px;
+    }
+
+    .panel-deco-circle-3 {
+      width: 120px;
+      height: 120px;
+      bottom: 30%;
+      right: 10%;
+    }
+
+    .panel-deco-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+    }
+
+    .pdl-1 {
+      width: 60%;
+      top: 35%;
+      left: 10%;
+    }
+
+    .pdl-2 {
+      width: 40%;
+      bottom: 30%;
+      right: 5%;
+    }
+
+    .panel-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--paper);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-logo span {
+      color: var(--gold);
+    }
+
+    .panel-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-tag {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .panel-tag::before {
       content: '';
-      position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
+      display: block;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .panel-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--paper);
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-headline em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .panel-sub {
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(245, 242, 236, 0.55);
+      max-width: 34ch;
+    }
+
+    .panel-footer {
+      position: relative;
+      z-index: 1;
+      font-size: 0.75rem;
+      color: rgba(245, 242, 236, 0.3);
+    }
+
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 4rem;
+      animation: formIn 0.7s 0.15s ease both;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    @keyframes formIn {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--muted);
+    }
+
+    .form-subtitle a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-subtitle a:hover {
+      text-decoration: underline;
     }
 
     .tab-bar {
       display: flex;
-      border: 1px solid rgba(13,13,13,0.18);
+      gap: 0;
+      margin-bottom: 2.25rem;
+      border: 1px solid var(--border-input);
       border-radius: 2px;
       overflow: hidden;
-      margin-bottom: 1.75rem;
     }
+
     .tab-btn {
       flex: 1;
       padding: 0.65rem 1rem;
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 500;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       text-decoration: none;
       text-align: center;
-      color: #6b6560;
+      color: var(--muted);
       background: transparent;
+      border: none;
+      cursor: pointer;
       transition: background 0.2s, color 0.2s;
-    }
-    .tab-btn.active { background: #0d0d0d; color: #f5f2ec; }
-    .tab-btn:not(.active):hover { background: rgba(13,13,13,0.06); color: #0d0d0d; }
-
-    .page-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #0d0d0d;
-      text-decoration: none;
-    }
-    .page-logo span { color: #c9a84c; }
-
-    .top-bar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 0;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid rgba(201,168,76,0.2);
+      justify-content: center;
     }
 
-    input, select {
-      font-family: 'DM Sans', sans-serif !important;
+    .tab-btn.active {
+      background: var(--ink);
+      color: var(--paper);
     }
 
-    .form-label {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #6b6560;
-      margin-bottom: 0.35rem;
+    .tab-btn:not(.active):hover {
+      background: rgba(13, 13, 13, 0.06);
+      color: var(--ink);
     }
 
-    .sh-input {
+    .submit-btn {
       width: 100%;
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.92rem;
-      color: #0d0d0d;
-      background: rgba(255,255,255,0.65);
-      border: 1px solid rgba(13,13,13,0.18) !important;
-      border-radius: 2px !important;
-      padding: 0.7rem 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .sh-input:focus { border-color: #c9a84c !important; background: rgba(255,255,255,0.9); }
-
-    .sh-btn {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 500;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #f5f2ec;
-      background: #0d0d0d;
+      color: var(--paper);
+      background: var(--ink);
       border: none;
       border-radius: 2px;
-      padding: 0.85rem 1.5rem;
+      padding: 0.9rem;
       cursor: pointer;
       transition: background 0.2s, transform 0.15s;
-      width: 100%;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
-    .sh-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
+
+    .submit-btn:hover {
+      background: #1f1f1f;
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+
+
+    .role-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .role-option {
+      position: relative;
+    }
+
+    .role-option input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .role-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      border: 1px solid var(--border-input);
+      border-radius: var(--radius-input);
+      background: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .role-card svg {
+      width: 24px;
+      height: 24px;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .role-card span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .role-option input:checked+.role-card {
+      border-color: var(--gold);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 12px rgba(201, 168, 76, 0.1);
+    }
+
+    .role-option input:checked+.role-card svg {
+      color: var(--gold);
+    }
+
+    .role-option input:checked+.role-card span {
+      color: var(--ink);
+    }
+
+    .slide-panel {
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+    }
+
+    .slide-panel.show {
+      max-height: 200px;
+      opacity: 1;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-left {
+        min-height: 220px;
+        padding: 2rem;
+      }
+
+      .panel-body .panel-headline {
+        font-size: 1.6rem;
+      }
+
+      .panel-right {
+        padding: 2.5rem 1.5rem;
+        overflow: visible;
+      }
+
+      .role-options {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <main class="shell px-6 py-8">
-    <div class="top-bar">
-      <a href="index.html" class="page-logo">Specialist<span>Hub</span></a>
+
+  <div class="panel-left">
+    <div class="panel-deco-circle panel-deco-circle-1"></div>
+    <div class="panel-deco-circle panel-deco-circle-2"></div>
+    <div class="panel-deco-circle panel-deco-circle-3"></div>
+    <div class="panel-deco-line pdl-1"></div>
+    <div class="panel-deco-line pdl-2"></div>
+
+    <a href="index.html" class="panel-logo">Specialist<span>Hub</span></a>
+
+    <div class="panel-body">
+      <p class="panel-tag">Join the platform</p>
+      <h2 class="panel-headline">
+        Deploy your<br>
+        <em>expertise</em><br>
+        safely.
+      </h2>
+      <p class="panel-sub">
+        Create your account to start managing contracts, securing payments, and engaging with specialized professionals.
+      </p>
     </div>
 
-    <div class="mx-auto max-w-2xl">
-      <div class="mb-6">
-        <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0d0d0d;margin-bottom:0.4rem;">Create account</h1>
-        <p style="font-size:0.9rem;color:#6b6560;">Already have an account? <a href="login.html" style="color:#c9a84c;text-decoration:none;font-weight:500;">Sign in</a></p>
-      </div>
+    <div class="panel-footer">© 2026 SpecialistHub</div>
+  </div>
 
-      <div class="tab-bar">
-        <a href="login.html" class="tab-btn">Log In</a>
-        <a href="register.html" class="tab-btn active">Sign Up</a>
-      </div>
-
-      <div class="glass rounded-[1.5rem] border border-white/60 p-8 shadow-xl" style="background:rgba(255,255,255,0.72);backdrop-filter:blur(18px);">
-        <form id="register-form" class="grid gap-5 md:grid-cols-2">
-
-          <div class="md:col-span-2">
-            <label class="form-label">Account type</label>
-            <select name="role" id="role" class="sh-input">
-              <option value="client">Client — I need specialists</option>
-              <option value="freelancer">Freelancer — I offer expertise</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="form-label">Full legal name</label>
-            <input name="name" class="sh-input" placeholder="Jane Smith" required>
-          </div>
-
-          <div>
-            <label class="form-label">Email address</label>
-            <input name="email" type="email" class="sh-input" placeholder="you@example.com" required>
-          </div>
-
-          <div>
-            <label class="form-label">Password</label>
-            <input name="password" type="password" class="sh-input" placeholder="••••••••" required>
-          </div>
-
-          <div>
-            <label class="form-label">Country</label>
-            <input name="country" class="sh-input" placeholder="Egypt" required>
-          </div>
-
-          <div>
-            <label class="form-label">Timezone</label>
-            <input name="timezone" class="sh-input" placeholder="UTC" value="UTC" required>
-          </div>
-
-          <div>
-            <label class="form-label">ID Type <span style="color:#6b6560;font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></label>
-            <input name="id_type" class="sh-input" placeholder="national_id, passport…">
-          </div>
-
-          <div id="freelancer-fields" class="hidden md:col-span-2 grid gap-4 md:grid-cols-2">
-            <div>
-              <label class="form-label">Specialty niche</label>
-              <select name="niche" class="sh-input">
-                <option value="data_science">Data Science</option>
-                <option value="legal">Legal</option>
-                <option value="translation">Translation</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Hourly rate (USD)</label>
-              <input name="hourly_rate" class="sh-input" placeholder="0.00">
-            </div>
-          </div>
-
-          <div id="admin-fields" class="hidden md:col-span-2">
-            <label class="form-label">Admin role</label>
-            <select name="admin_role" class="sh-input">
-              <option value="">No admin role</option>
-              <option value="financial_admin">Financial Admin</option>
-              <option value="dispute_mediator">Dispute Mediator</option>
-              <option value="tech_support">Tech Support</option>
-            </select>
-          </div>
-
-          <div class="md:col-span-2">
-            <button type="submit" class="sh-btn">Create account →</button>
-          </div>
-
-        </form>
-      </div>
+  <div class="panel-right">
+    <div class="form-header">
+      <h1 class="form-title">Register</h1>
+      <p class="form-subtitle">Already have an account? <a href="login.html">Sign in</a></p>
     </div>
-  </main>
+
+    <div class="tab-bar">
+      <a href="login.html" class="tab-btn">Log In</a>
+      <a href="register.html" class="tab-btn active">Sign Up</a>
+    </div>
+
+    <div id="register-container"></div> <!-- Error banner target -->
+
+    <form id="register-form" autocomplete="off">
+      <div class="form-group">
+        <label class="sh-label">Account type</label>
+        <div class="role-options">
+          <label class="role-option">
+            <input type="radio" name="role" value="client" checked>
+            <div class="role-card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Client</span>
+            </div>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="freelancer">
+            <div class="role-card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+              <span>Freelancer</span>
+            </div>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="admin">
+            <div class="role-card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+              <span>Admin</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="sh-label">Full legal name</label>
+          <input name="name" class="sh-input" placeholder="Jane Smith" required>
+        </div>
+        <div class="form-group">
+          <label class="sh-label">Email address</label>
+          <input name="email" type="email" class="sh-input" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="sh-label">Password</label>
+          <input name="password" type="password" class="sh-input" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label class="sh-label">Country</label>
+          <input name="country" class="sh-input" placeholder="Egypt" required>
+        </div>
+        <div class="form-group">
+          <label class="sh-label">Timezone</label>
+          <input name="timezone" class="sh-input" placeholder="UTC" value="UTC" required>
+        </div>
+        <div class="form-group">
+          <label class="sh-label">ID Type <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input name="id_type" class="sh-input" placeholder="national_id, passport…">
+        </div>
+      </div>
+
+      <div id="freelancer-fields" class="slide-panel">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="sh-label">Specialty niche</label>
+            <select name="niche" class="sh-select">
+              <option value="data_science">Data Science</option>
+              <option value="legal">Legal</option>
+              <option value="translation">Translation</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="sh-label">Hourly rate (USD)</label>
+            <input name="hourly_rate" class="sh-input" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+
+      <div id="admin-fields" class="slide-panel">
+        <div class="form-group">
+          <label class="sh-label">Admin role</label>
+          <select name="admin_role" class="sh-select">
+            <option value="">No admin role</option>
+            <option value="financial_admin">Financial Admin</option>
+            <option value="dispute_mediator">Dispute Mediator</option>
+            <option value="tech_support">Tech Support</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        Create account
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+    </form>
+
+  </div>
 
   <script src="js/app.js"></script>
   <script>
-    const roleSelect = document.getElementById('role');
-    const freelancerFields = document.getElementById('freelancer-fields');
-    const adminFields = document.getElementById('admin-fields');
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const fFields = document.getElementById('freelancer-fields');
+    const aFields = document.getElementById('admin-fields');
 
-    function setSectionDisabled(container, disabled) {
-      if (!container) return;
-      container.querySelectorAll('input, select, textarea').forEach((el) => {
-        el.disabled = disabled;
-      });
-    }
+    roleRadios.forEach(r => r.addEventListener('change', () => {
+      const val = document.querySelector('input[name="role"]:checked').value;
+      fFields.classList.toggle('show', val === 'freelancer');
+      aFields.classList.toggle('show', val === 'admin');
+    }));
 
-    function toggleFields() {
-      const val = roleSelect.value;
-      freelancerFields.classList.toggle('hidden', val !== 'freelancer');
-      adminFields.classList.toggle('hidden', val !== 'admin');
-      setSectionDisabled(freelancerFields, val !== 'freelancer');
-      setSectionDisabled(adminFields, val !== 'admin');
-    }
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      if (payload.role !== 'freelancer') { delete payload.niche; delete payload.hourly_rate; }
+      if (payload.role !== 'admin') delete payload.admin_role;
 
-    roleSelect.addEventListener('change', toggleFields);
-    toggleFields();
-
-    document.getElementById('register-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
+      const container = document.getElementById('register-container');
+      showLoading(container);
       try {
-        const response = await apiCall('auth.php?action=register', 'POST', Object.fromEntries(new FormData(event.target).entries()));
-        window.sessionUser = response.user;
+        const res = await apiCall('auth.php?action=register', 'POST', payload);
+        window.sessionUser = res.user;
         location.replace('dashboard.html');
-      } catch (error) {
-        alert(error.message);
+      } catch (err) {
+        stopLoading(container);
+        showError(container, err.message);
       }
     });
+
+
   </script>
 </body>
+
 </html>

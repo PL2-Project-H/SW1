@@ -3,59 +3,109 @@ document.addEventListener('DOMContentLoaded', async () => {
   const role = user.admin_role;
 
   await loadSection('admin-dashboard', 'admin.php?action=dashboard', (dashboard) =>
-    Object.entries(dashboard).map(([key, value]) => `<div class="metric-card glass rounded-3xl p-5"><div class="text-sm text-slate-500">${key}</div><div class="mt-2 text-2xl font-semibold">${value}</div></div>`).join('')
+    Object.entries(dashboard).map(([key, value]) => `
+      <div class="hcard" style="margin:0;">
+        <div class="hcard-eyebrow" style="text-transform:capitalize;">${key.replace(/_/g, ' ')}</div>
+        <div class="hcard-amount">${value}</div>
+      </div>
+    `).join('')
   );
 
   if (['tech_support', 'dispute_mediator'].includes(role)) {
     await loadSection('users-table', 'admin.php?action=users', (users) =>
-      users.map((userRow) => `<div class="rounded-2xl border p-4 text-sm">${userRow.name} | ${userRow.email} | ${userRow.status}</div>`).join('')
+      users.map((userRow) => `
+        <div class="tr">
+          <div><strong style="color:var(--ink);">${userRow.name}</strong> <span style="color:var(--muted); margin-left:0.5rem;">${userRow.email}</span></div>
+          <span class="badge ${userRow.status==='active'?'badge-open':'badge-warning'}">${userRow.status}</span>
+        </div>
+      `).join('')
     );
   } else {
-    setUnavailable('users-table', 'This admin role cannot view users.');
+    setUnavailable('users-table', 'Role restricted.');
   }
 
   if (['tech_support', 'dispute_mediator'].includes(role)) {
     await loadSection('credentials-table', 'admin.php?action=credentials/queue', (credentials) =>
-      credentials.map((item) => `<div class="rounded-2xl border p-4 text-sm">${item.freelancer_name} | ${item.type} | ${item.status}
-        <div class="mt-2 flex gap-2"><button onclick="reviewCredential(${item.id},'verified')" class="rounded bg-emerald-600 px-3 py-1 text-white">Approve</button><button onclick="reviewCredential(${item.id},'rejected')" class="rounded bg-rose-600 px-3 py-1 text-white">Reject</button></div>
-      </div>`).join('')
+      credentials.map((item) => `
+        <div class="tr" style="align-items:start;">
+          <div>
+            <div style="font-weight:700;">Freelancer: ${item.freelancer_name}</div>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">Type: ${item.type} | <span class="badge ${item.status==='pending'?'badge-warning':'badge-info'}">${item.status}</span></div>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button onclick="reviewCredential(${item.id},'verified')" class="btn-secondary btn-sm" style="color:var(--success); border-color:var(--success);">Approve</button>
+            <button onclick="reviewCredential(${item.id},'rejected')" class="btn-danger btn-sm">Reject</button>
+          </div>
+        </div>
+      `).join('')
     );
   } else {
-    setUnavailable('credentials-table', 'This admin role cannot review credentials.');
+    setUnavailable('credentials-table', 'Role restricted.');
   }
 
   if (['tech_support', 'dispute_mediator', 'financial_admin'].includes(role)) {
     await loadSection('kyc-table', 'admin.php?action=kyc/queue', (rows) =>
-      rows.map((item) => `<div class="rounded-2xl border p-4 text-sm">${item.name} | ${item.document_kind} | ${item.account_type}
-        <div class="mt-2 flex gap-2"><button onclick="reviewKyc(${item.id},'verified')" class="rounded bg-emerald-600 px-3 py-1 text-white">Verify</button><button onclick="reviewKyc(${item.id},'rejected')" class="rounded bg-rose-600 px-3 py-1 text-white">Reject</button></div>
-      </div>`).join('')
+      rows.map((item) => `
+        <div class="tr" style="align-items:start;">
+          <div>
+            <div style="font-weight:700;">Entity: ${item.name}</div>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">Format: ${item.document_kind} | Tier: ${item.account_type}</div>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button onclick="reviewKyc(${item.id},'verified')" class="btn-secondary btn-sm" style="color:var(--success); border-color:var(--success);">Verify</button>
+            <button onclick="reviewKyc(${item.id},'rejected')" class="btn-danger btn-sm">Reject</button>
+          </div>
+        </div>
+      `).join('')
     );
   } else {
-    setUnavailable('kyc-table', 'This admin role cannot review KYC submissions.');
+    setUnavailable('kyc-table', 'Role restricted.');
   }
 
   await loadSection('dispute-table', 'dispute.php?action=mine', (disputes) =>
-    disputes.map((item) => `<div class="rounded-2xl border p-4 text-sm">Dispute #${item.id} | ${item.status}</div>`).join('')
+    disputes.map((item) => `
+      <div class="tr">
+        <div><strong>Dispute Protocol #${item.id}</strong></div>
+        <span class="badge badge-danger">${item.status}</span>
+      </div>
+    `).join('')
   );
 
   if (['tech_support', 'financial_admin'].includes(role)) {
     await loadSection('reports-table', 'admin.php?action=reports/niche', (reports) =>
-      reports.map((row) => `<div class="rounded-2xl border p-4 text-sm">${row.niche} | Revenue ${row.total_revenue}
-        <div class="mt-2 text-slate-600">Top rated: ${(row.top_rated_freelancers || []).map((item) => `${item.name} (${item.composite_score ?? 0})`).join(', ') || 'None yet'}</div>
-      </div>`).join('')
+      reports.map((row) => `
+        <div class="tr" style="align-items:start;">
+          <div>
+            <div style="font-weight:700; text-transform:capitalize;">${row.niche.replace('_',' ')}</div>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:0.25rem;">
+              Top Experts: ${(row.top_rated_freelancers || []).map((item) => `${item.name} (${item.composite_score ?? 0})`).join(', ') || 'N/A'}
+            </div>
+          </div>
+          <div style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700;">
+            $${parseFloat(row.total_revenue).toLocaleString()}
+          </div>
+        </div>
+      `).join('')
     );
   } else {
-    setUnavailable('reports-table', 'This admin role cannot access niche reports.');
+    setUnavailable('reports-table', 'Role restricted.');
   }
 
   if (role === 'tech_support') {
     await loadSection('audit-table', 'admin.php?action=audit-log', (audit) =>
-      audit.map((row) => `<div class="rounded-2xl border p-4 text-sm">${row.action} | ${row.entity_type} #${row.entity_id}</div>`).join('')
+      audit.map((row) => `
+        <div class="tr">
+          <div>
+            <span class="badge" style="background:#e5e7eb; color:#374151;">${row.action}</span>
+            <span style="font-size:0.9rem; margin-left:0.5rem;">${row.entity_type} #${row.entity_id}</span>
+          </div>
+        </div>
+      `).join('')
     );
     await loadArchivedMessages();
   } else {
-    setUnavailable('audit-table', 'This admin role cannot access the audit trail.');
-    setUnavailable('archive-table', 'This admin role cannot browse archived messages.');
+    setUnavailable('audit-table', 'Role restricted.');
+    setUnavailable('archive-table', 'Role restricted.');
   }
 
   const rebuildButton = qs('rebuild-index');
@@ -63,32 +113,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   const canTechSupport = role === 'tech_support';
   rebuildButton.disabled = !canTechSupport;
   digestButton.disabled = !canTechSupport;
-  rebuildButton.classList.toggle('opacity-50', !canTechSupport);
-  digestButton.classList.toggle('opacity-50', !canTechSupport);
+  if(!canTechSupport) {
+    rebuildButton.style.opacity = '0.5';
+    digestButton.style.opacity = '0.5';
+  }
 
   rebuildButton.addEventListener('click', async () => {
-    if (!canTechSupport) {
-      alert('Only tech support admins can rebuild the index.');
-      return;
-    }
+    if (!canTechSupport) return;
     try {
+      rebuildButton.textContent = 'Processing...';
       const result = await apiCall('admin.php?action=search-index/rebuild');
       alert(`Search cache rebuilt for ${result.count} freelancers.`);
+      rebuildButton.textContent = 'Trigger Index Rebuild';
     } catch (error) {
       alert(error.message);
+      rebuildButton.textContent = 'Trigger Index Rebuild';
     }
   });
 
   digestButton.addEventListener('click', async () => {
-    if (!canTechSupport) {
-      alert('Only tech support admins can send the weekly digest.');
-      return;
-    }
+    if (!canTechSupport) return;
     try {
+      digestButton.textContent = 'Dispatching...';
       const result = await apiCall('admin.php?action=weekly-digest/send', 'POST', {});
       alert(`Generated ${result.generated} digests`);
+      digestButton.textContent = 'Dispatch Recommendations';
     } catch (error) {
       alert(error.message);
+      digestButton.textContent = 'Dispatch Recommendations';
     }
   });
 
@@ -96,43 +148,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   qs('flag-user-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!['tech_support', 'dispute_mediator'].includes(role)) {
-      alert('Your admin role cannot flag users.');
-      return;
-    }
+    if (!['tech_support', 'dispute_mediator'].includes(role)) return;
     const data = Object.fromEntries(new FormData(e.target).entries());
+    const btn = e.target.querySelector('button'); btn.textContent = '...';
     try {
       await apiCall('admin.php?action=users/flag', 'POST', data);
       alert('User flagged.');
-      e.target.reset();
-    } catch (err) {
-      alert(err.message);
-    }
+      e.target.reset(); btn.textContent = 'Attach Flag';
+    } catch (err) { alert(err.message); btn.textContent = 'Attach Flag'; }
   });
 
   qs('sanction-user-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!['tech_support', 'dispute_mediator'].includes(role)) {
-      alert('Your admin role cannot sanction users.');
-      return;
-    }
+    if (!['tech_support', 'dispute_mediator'].includes(role)) return;
     const data = Object.fromEntries(new FormData(e.target).entries());
+    const btn = e.target.querySelector('button'); btn.textContent = '...';
     try {
       await apiCall('admin.php?action=users/sanction', 'POST', data);
       alert('Sanction applied.');
-      e.target.reset();
-    } catch (err) {
-      alert(err.message);
-    }
+      e.target.reset(); btn.textContent = 'Execute Sanction Request';
+    } catch (err) { alert(err.message); btn.textContent = 'Execute Sanction Request'; }
   });
 
-  
   document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = document.getElementById(btn.dataset.target);
       if (target) {
-        target.classList.toggle('hidden');
-        btn.querySelector('span').textContent = target.classList.contains('hidden') ? '▼' : '▲';
+        const isHidden = target.classList.toggle('hidden');
+        btn.classList.toggle('open', !isHidden);
+        btn.querySelector('span').textContent = isHidden ? '▼' : '▲';
       }
     });
   });
@@ -140,44 +184,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function reviewCredential(id, decision) {
   try {
+    document.body.style.opacity = '0.5';
     await apiCall('admin.php?action=credential/review', 'POST', { credential_id: id, decision });
     location.reload();
-  } catch (error) {
-    alert(error.message);
-  }
+  } catch (error) { document.body.style.opacity = '1'; alert(error.message); }
 }
 
 async function reviewKyc(id, decision) {
   try {
+    document.body.style.opacity = '0.5';
     await apiCall('admin.php?action=kyc/review', 'POST', { submission_id: id, decision });
     location.reload();
-  } catch (error) {
-    alert(error.message);
-  }
+  } catch (error) { document.body.style.opacity = '1'; alert(error.message); }
 }
 
 async function loadArchivedMessages() {
-  const search = encodeURIComponent(qs('archive-search')?.value || '');
+  const searchEl = qs('archive-search');
+  const search = encodeURIComponent(searchEl ? searchEl.value : '');
   await loadSection('archive-table', `admin.php?action=messages/archive&q=${search}&page=1&limit=20`, (data) =>
-    (data.items || []).map((row) => `<div class="rounded-2xl border p-4 text-sm">
-      <div class="font-semibold">${row.source_type} #${row.parent_id}</div>
-      <div class="mt-1 text-slate-600">${row.decoded_message}</div>
-      <div class="mt-2 text-xs text-slate-400">${row.sent_at}</div>
-    </div>`).join('')
+    (data.items || []).map((row) => `
+      <div class="tr" style="align-items:start; flex-direction:column; gap:0.5rem;">
+        <div style="display:flex; justify-content:space-between; width:100%;">
+          <strong style="font-size:0.9rem;">${row.source_type} #${row.parent_id}</strong>
+          <span style="font-size:0.8rem; color:var(--muted);">${row.sent_at}</span>
+        </div>
+        <div style="font-size:0.85rem; color:var(--ink);">${escapeHtml(row.decoded_message)}</div>
+      </div>
+    `).join('')
   );
 }
 
 async function loadSection(id, endpoint, render) {
   const target = qs(id);
-  target.innerHTML = '<div class="rounded-2xl border p-4 text-sm text-slate-500">Loading...</div>';
+  if(!target) return;
+  target.innerHTML = '<div class="empty-state"><p>Querying datastore...</p></div>';
   try {
     const data = await apiCall(endpoint);
-    target.innerHTML = render(data) || '<div class="rounded-2xl border p-4 text-sm text-slate-500">No records found.</div>';
+    target.innerHTML = render(data) || '<div class="empty-state"><p>No records located.</p></div>';
   } catch (error) {
-    target.innerHTML = `<div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">${error.message}</div>`;
+    target.innerHTML = `<div class="empty-state"><p style="color:var(--danger);">${error.message}</p></div>`;
   }
 }
 
 function setUnavailable(id, message) {
-  qs(id).innerHTML = `<div class="rounded-2xl border border-dashed p-4 text-sm text-slate-500">${message}</div>`;
+  const target = qs(id);
+  if(target) target.innerHTML = `<div class="empty-state"><p>${message}</p></div>`;
+}
+
+function escapeHtml(s) {
+  if(!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }

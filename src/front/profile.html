@@ -1,72 +1,411 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile | SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    .tabs {
+      display: flex;
+      gap: 2rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      padding-bottom: 1px;
+    }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab.active {
+      color: var(--ink);
+      border-bottom-color: var(--gold);
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+
+
+    .file-dropzone {
+      border: 2px dashed var(--border-input);
+      border-radius: var(--radius-card);
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      background: rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-dropzone:hover {
+      border-color: var(--gold);
+      background: var(--gold-light);
+    }
+
+    .file-dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .file-dropzone svg {
+      width: 32px;
+      height: 32px;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+
+
+    .availability-grid-display {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 1rem;
+    }
+
+    .availability-day {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 0.5rem;
+      text-align: center;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .availability-day-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-input);
+      padding-bottom: 0.5rem;
+    }
+
+    .availability-slot-badge {
+      font-size: 0.7rem;
+      background: var(--gold-light);
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="shell px-6 py-6">
-    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
-    <div class="grid gap-6 lg:grid-cols-2">
-      <form id="profile-form" class="glass rounded-3xl border p-6 space-y-4">
-        <h2 class="text-2xl font-semibold">Profile Editor</h2>
-        <textarea id="bio" name="bio" class="h-32 w-full rounded-2xl border px-4 py-3" placeholder="Bio"></textarea>
-        <select id="niche" name="niche" class="w-full rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
-        <input id="hourly_rate" name="hourly_rate" class="w-full rounded-2xl border px-4 py-3" placeholder="Hourly rate">
-        <input id="timezone" name="timezone" class="w-full rounded-2xl border px-4 py-3" placeholder="Timezone">
-        <input id="skills" name="skills" class="w-full rounded-2xl border px-4 py-3" placeholder="Comma separated skills">
-        <label class="flex gap-2 text-sm"><input id="digest_opt_in" type="checkbox" name="digest_opt_in" value="1" checked> Receive weekly digest recommendations</label>
-        <button class="rounded-2xl bg-slate-950 px-4 py-3 text-white">Save Profile</button>
-      </form>
-      <div class="space-y-6">
-        <form id="credential-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
-          <h2 class="text-xl font-semibold">Credential Upload</h2>
-          <select name="type" class="w-full rounded-2xl border px-4 py-3"><option value="certification">Certification</option><option value="license">License</option><option value="portfolio">Portfolio Proof</option></select>
-          <input type="file" name="file" class="w-full">
-          <button class="rounded-xl bg-sky-600 px-4 py-3 text-white">Upload Credential</button>
-        </form>
-        <form id="kyc-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
-          <h2 class="text-xl font-semibold">KYC / Identity Upload</h2>
-          <select name="account_type" class="w-full rounded-2xl border px-4 py-3"><option value="individual">Individual</option><option value="company">Company</option></select>
-          <select name="document_kind" class="w-full rounded-2xl border px-4 py-3"><option value="national_id">National ID</option><option value="passport">Passport</option><option value="company_registration">Company Registration</option></select>
-          <input type="file" name="file" class="w-full">
-          <button class="rounded-xl bg-violet-700 px-4 py-3 text-white">Submit KYC</button>
-        </form>
-        <form id="portfolio-form" class="glass rounded-3xl border p-6 space-y-4" enctype="multipart/form-data">
-          <h2 class="text-xl font-semibold">Portfolio Upload</h2>
-          <input name="title" class="w-full rounded-2xl border px-4 py-3" placeholder="Portfolio title">
-          <select name="niche" class="w-full rounded-2xl border px-4 py-3"><option value="data_science">Data Science</option><option value="legal">Legal</option><option value="translation">Translation</option><option value="other">Other</option></select>
-          <input name="dataset_description" class="w-full rounded-2xl border px-4 py-3" placeholder="Dataset description">
-          <input name="tools_used" class="w-full rounded-2xl border px-4 py-3" placeholder="Tools used">
-          <input name="case_type" class="w-full rounded-2xl border px-4 py-3" placeholder="Case type">
-          <input name="jurisdiction" class="w-full rounded-2xl border px-4 py-3" placeholder="Jurisdiction">
-          <input name="language_pair" class="w-full rounded-2xl border px-4 py-3" placeholder="Language pair">
-          <input name="client_name" class="w-full rounded-2xl border px-4 py-3" placeholder="Client name or company">
-          <input name="project_outcome" class="w-full rounded-2xl border px-4 py-3" placeholder="Project outcome shown on profile">
-          <label class="flex gap-2"><input type="checkbox" name="is_public" value="1" checked> Public</label>
-          <label class="flex gap-2"><input type="checkbox" name="is_confidential" value="1"> Confidential</label>
-          <input type="file" name="file" class="w-full">
-          <button class="rounded-xl bg-emerald-600 px-4 py-3 text-white">Upload Portfolio Item</button>
-        </form>
-        <form id="availability-form" class="glass rounded-3xl border p-6 space-y-4">
-          <h2 class="text-xl font-semibold">Availability</h2>
-          <div id="availability-slots" class="space-y-3"></div>
-          <button type="button" id="add-slot-btn" class="rounded-xl bg-slate-700 px-4 py-2 text-white text-sm">+ Add Time Slot</button>
-          <button type="submit" class="rounded-xl bg-amber-500 px-4 py-3 text-white w-full">Save Availability</button>
+  <main class="shell">
+    <div class="header-layout">
+      <div>
+        <h1 class="page-header m-0">Specialist Portfolio</h1>
+        <p style="font-size:0.9rem; color:var(--muted); margin-top:0.25rem;">Manage your presentation, credentials, and
+          verification frameworks.</p>
+      </div>
+    </div>
+
+    <div class="tabs" id="profile-tabs">
+      <div class="tab active" data-target="pane-profile">Core Profile</div>
+      <div class="tab" data-target="pane-credentials">Credentials</div>
+      <div class="tab" data-target="pane-portfolio">Portfolio</div>
+      <div class="tab" data-target="pane-availability">Availability</div>
+      <div class="tab" data-target="pane-kyc">KYC verification</div>
+    </div>
+
+    <!-- PANE: CORE PROFILE -->
+    <div id="pane-profile" class="tab-pane active">
+      <div
+        style="display:grid; gap:2rem; grid-template-columns:1fr; @media(min-width:1024px){ grid-template-columns:2fr 1fr; }">
+        <form id="profile-form" class="card">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Identity & Focus</h2>
+          </div>
+          <div class="card-body">
+            <div id="profile-form-err"></div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="sh-label">Professional Overview (Bio)</label>
+                <textarea id="bio" name="bio" class="sh-textarea" style="min-height:120px;"
+                  placeholder="Tell your professional story..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Specialist Niche</label>
+                <select id="niche" name="niche" class="sh-select">
+                  <option value="data_science">Data Science</option>
+                  <option value="legal">Legal</option>
+                  <option value="translation">Translation</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <label class="sh-label" style="margin-top: 1.5rem;">Target Rate (USD/hr)</label>
+                <input id="hourly_rate" name="hourly_rate" class="sh-input" placeholder="e.g. 150">
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="sh-label">Operational Timezone</label>
+                <input id="timezone" name="timezone" class="sh-input" placeholder="e.g. UTC-5">
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Skill taxonomy</label>
+                <input id="skills" name="skills" class="sh-input"
+                  placeholder="Comma separated, e.g. Python, NLP, PyTorch">
+              </div>
+            </div>
+
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; margin: 1rem 0;">
+              <input id="digest_opt_in" type="checkbox" name="digest_opt_in" value="1" checked> Subscribe to
+              algorithm-recommended weekly digest
+            </label>
+
+            <button class="btn-primary" style="margin-top: 1rem;">Update Core Profile</button>
+          </div>
         </form>
       </div>
     </div>
-    <div class="mt-8 grid gap-6 lg:grid-cols-3">
-      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Portfolio</h3><div id="portfolio-list" class="space-y-3"></div></section>
-      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Credentials</h3><div id="credential-list" class="space-y-3"></div></section>
-      <section class="glass rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">Availability Grid</h3><div id="availability-list" class="space-y-3"></div></section>
+
+    <!-- PANE: CREDENTIALS -->
+    <div id="pane-credentials" class="tab-pane">
+      <div
+        style="display:grid; gap:2rem; grid-template-columns:1fr; @media(min-width:1024px){ grid-template-columns:1fr 1fr; }">
+        <form id="credential-form" class="card" enctype="multipart/form-data">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Submit Verification
+            </h2>
+          </div>
+          <div class="card-body">
+            <div id="cred-err"></div>
+            <div class="form-group">
+              <label class="sh-label">Credential Path</label>
+              <select name="type" class="sh-select">
+                <option value="certification">Industry Certification</option>
+                <option value="license">Legal/Medical License</option>
+                <option value="portfolio">Institutional Proof</option>
+              </select>
+            </div>
+
+            <div class="file-dropzone" style="margin-bottom: 2rem;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <div style="font-weight:600; font-size:1.1rem; color:var(--ink);">Click or drag file to upload</div>
+              <div style="font-size:0.85rem; color:var(--muted); margin-top:0.25rem;">Supports PDF, PNG, JPG up to 10MB
+              </div>
+              <input type="file" name="file" required>
+            </div>
+
+            <button class="btn-primary" style="width:100%;">Transmit Credential</button>
+          </div>
+        </form>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Registry</h2>
+          </div>
+          <div class="card-body">
+            <div id="credential-list" style="display:flex; flex-direction:column; gap:1rem;"></div>
+          </div>
+        </section>
+      </div>
     </div>
-    <section class="glass mt-8 rounded-3xl border p-6"><h3 class="mb-4 text-xl font-semibold">KYC Submission History</h3><div id="kyc-list" class="space-y-3"></div></section>
-  </div>
+
+    <!-- PANE: PORTFOLIO -->
+    <div id="pane-portfolio" class="tab-pane">
+      <div
+        style="display:grid; gap:2rem; grid-template-columns:1fr; @media(min-width:1024px){ grid-template-columns:1fr 2fr; }">
+        <form id="portfolio-form" class="card" enctype="multipart/form-data">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Add Artifact</h2>
+          </div>
+          <div class="card-body">
+            <div id="port-err"></div>
+            <div class="form-group"><label class="sh-label">Title</label><input name="title" class="sh-input" required>
+            </div>
+            <div class="form-group">
+              <label class="sh-label">Niche Context</label>
+              <select name="niche" class="sh-select">
+                <option value="data_science">Data Science</option>
+                <option value="legal">Legal</option>
+                <option value="translation">Translation</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group"><label class="sh-label">Dataset Desc.</label><input name="dataset_description"
+                  class="sh-input"></div>
+              <div class="form-group"><label class="sh-label">Tools Used</label><input name="tools_used"
+                  class="sh-input"></div>
+              <div class="form-group"><label class="sh-label">Case Type</label><input name="case_type" class="sh-input">
+              </div>
+              <div class="form-group"><label class="sh-label">Jurisdiction</label><input name="jurisdiction"
+                  class="sh-input"></div>
+              <div class="form-group"><label class="sh-label">Language Pair</label><input name="language_pair"
+                  class="sh-input"></div>
+              <div class="form-group"><label class="sh-label">Client Name</label><input name="client_name"
+                  class="sh-input"></div>
+            </div>
+
+            <div class="form-group"><label class="sh-label">Outcome Impact</label><input name="project_outcome"
+                class="sh-input" required></div>
+
+            <div style="display:flex; gap:1rem; margin-bottom: 2rem;">
+              <label style="font-size:0.9rem;"><input type="radio" name="is_public" value="1" checked> Public
+                Registry</label>
+              <label style="font-size:0.9rem;"><input type="radio" name="is_confidential" value="1"> Confidential (Proof
+                only)</label>
+            </div>
+
+            <div class="file-dropzone" style="margin-bottom: 2rem; padding: 2rem 1rem;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <div style="font-weight:600; font-size:0.95rem; color:var(--ink);">Attach Deliverable (PDF, Code, Doc)
+              </div>
+              <input type="file" name="file" required>
+            </div>
+
+            <button class="btn-primary" style="width:100%;">Upload to Portfolio</button>
+          </div>
+        </form>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Showcase</h2>
+          </div>
+          <div class="card-body">
+            <div id="portfolio-list" style="display:flex; flex-direction:column; gap:1.5rem;"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- PANE: AVAILABILITY -->
+    <div id="pane-availability" class="tab-pane">
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Active 7-Day Timeline
+            Coverage</h2>
+        </div>
+        <div class="card-body">
+          <div id="availability-grid-container" class="availability-grid-display"></div>
+        </div>
+      </div>
+
+      <form id="availability-form" class="card">
+        <div class="card-header">
+          <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Configure Working Slots
+          </h2>
+        </div>
+        <div class="card-body">
+          <div id="avail-err"></div>
+          <div id="availability-slots" style="display:flex; flex-direction:column; gap:1rem; margin-bottom: 2rem;">
+          </div>
+
+          <div style="display:flex; gap:1rem;">
+            <button type="button" id="add-slot-btn" class="btn-secondary">+ Add Block</button>
+            <button type="submit" class="btn-primary">Lock Architecture</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- PANE: KYC -->
+    <div id="pane-kyc" class="tab-pane">
+      <div
+        style="display:grid; gap:2rem; grid-template-columns:1fr; @media(min-width:1024px){ grid-template-columns:1fr 1fr; }">
+        <form id="kyc-form" class="card" enctype="multipart/form-data">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Identity Lock</h2>
+          </div>
+          <div class="card-body">
+            <div id="kyc-err"></div>
+            <div class="form-group">
+              <label class="sh-label">Account Archetype</label>
+              <select name="account_type" class="sh-select">
+                <option value="individual">Individual</option>
+                <option value="company">Corporate Entity</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="sh-label">Proof of Identity Form</label>
+              <select name="document_kind" class="sh-select">
+                <option value="national_id">National ID</option>
+                <option value="passport">Passport</option>
+                <option value="company_registration">Registration Doc</option>
+              </select>
+            </div>
+
+            <div class="file-dropzone" style="margin-bottom: 2rem;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m0 0h5a2 2 0 110 4z" />
+              </svg>
+              <div style="font-weight:600; font-size:1.1rem; color:var(--ink);">Drop KYC Package</div>
+              <div style="font-size:0.85rem; color:var(--muted); margin-top:0.25rem;">Must be high resolution</div>
+              <input type="file" name="file" required>
+            </div>
+
+            <button class="btn-primary" style="width:100%; background:var(--ink);">Transmit KYC</button>
+          </div>
+        </form>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Submission Matrix</h2>
+          </div>
+          <div class="card-body">
+            <div id="kyc-list" style="display:flex; flex-direction:column; gap:1rem;"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </main>
+
   <script src="js/app.js"></script>
   <script src="js/profile.js"></script>
 </body>
+
 </html>

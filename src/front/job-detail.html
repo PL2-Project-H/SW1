@@ -1,169 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job Detail | SpecialistHub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/app.css">
+  <style>
+    .dual-pane {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .dual-pane {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .slide-panel {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+      margin-top: 0;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: var(--radius-card);
+    }
+
+    .slide-panel.show {
+      max-height: 800px;
+      opacity: 1;
+      margin-top: 1rem;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .card-awarded {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(201, 168, 76, 0.1));
+      border: 1px solid var(--gold) !important;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="shell px-6 py-6">
-    <nav id="nav-links" class="glass mb-8 flex items-center justify-between rounded-3xl border px-6 py-4"></nav>
-    <div class="grid gap-6 lg:grid-cols-2">
-      <section class="glass rounded-3xl border p-6">
-        <h1 class="text-3xl font-semibold">Job Interaction</h1>
-        <p class="mt-3 text-slate-600">Use this page after navigating from jobs. Client actions use the job ID from the query string.</p>
-        <div id="job-bids" class="mt-6 space-y-3"></div>
+  <main class="shell">
+    <div class="dual-pane">
+
+      <!-- Left Pane: Info & Content -->
+      <section>
+        <h1 class="page-header" style="margin-bottom: 2rem;">Interaction Hub</h1>
+
+        <div id="job-bids"></div>
       </section>
-      <section class="glass rounded-3xl border p-6">
-        <form id="bid-form" class="space-y-4">
-          <h2 class="text-2xl font-semibold">Submit Bid</h2>
-          <input name="amount" class="w-full rounded-2xl border px-4 py-3" placeholder="Amount">
-          <input name="validity_days" class="w-full rounded-2xl border px-4 py-3" placeholder="Validity days">
-          <textarea name="proposal_text" class="h-32 w-full rounded-2xl border px-4 py-3" placeholder="Proposal"></textarea>
-          <button class="rounded-2xl bg-slate-950 px-4 py-3 text-white">Submit Versioned Bid</button>
-        </form>
-        <form id="interview-form" class="mt-8 space-y-4">
-          <h2 class="text-2xl font-semibold">Schedule Interview</h2>
-          <input name="freelancer_id" class="w-full rounded-2xl border px-4 py-3" placeholder="Freelancer ID">
-          <input name="scheduled_at" type="datetime-local" class="w-full rounded-2xl border px-4 py-3">
-          <input name="timezone" class="w-full rounded-2xl border px-4 py-3" placeholder="Timezone">
-          <textarea name="notes" class="h-24 w-full rounded-2xl border px-4 py-3" placeholder="Notes"></textarea>
-          <button class="rounded-2xl bg-sky-600 px-4 py-3 text-white">Schedule</button>
-        </form>
-        <div id="interview-list" class="mt-8 space-y-3"></div>
+
+      <!-- Right Pane: Actions & Scheduler -->
+      <section>
+        <div class="card" id="freelancer-bid-box" style="display:none; margin-bottom: 2rem;">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Submit Bid</h2>
+          </div>
+          <div class="card-body">
+            <div id="bid-err"></div>
+            <form id="bid-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="sh-label">Amount (USD)</label>
+                  <input name="amount" class="sh-input" placeholder="e.g. 5000" required>
+                </div>
+                <div class="form-group">
+                  <label class="sh-label">Validity (Days)</label>
+                  <input name="validity_days" class="sh-input" placeholder="30" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Proposal</label>
+                <textarea name="proposal_text" class="sh-textarea" placeholder="Detail your approach..."
+                  required></textarea>
+              </div>
+              <button class="btn-primary" style="width:100%;">Submit Proposal</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card" id="client-actions-box" style="display:none;">
+          <div class="card-header">
+            <h2 style="font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700;">Job Actions</h2>
+            <button id="toggle-interview-btn" class="btn-secondary btn-sm" style="border-radius: 9999px;">+ Schedule
+              Interview</button>
+          </div>
+
+          <div id="interview-form-wrapper" class="slide-panel">
+            <h3 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; margin-bottom: 1rem;">
+              Setup Interview</h3>
+            <div id="int-err"></div>
+            <form id="interview-form">
+              <div class="form-group">
+                <label class="sh-label">Freelancer ID</label>
+                <input name="freelancer_id" class="sh-input" placeholder="Enter ID" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Time & Date</label>
+                <input name="scheduled_at" type="datetime-local" class="sh-input" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Timezone</label>
+                <input name="timezone" class="sh-input" placeholder="UTC" value="UTC" required>
+              </div>
+              <div class="form-group">
+                <label class="sh-label">Notes</label>
+                <textarea name="notes" class="sh-textarea shadow-sm" style="min-height: 80px;"
+                  placeholder="Meet link, context..."></textarea>
+              </div>
+              <button class="btn-primary" style="width:100%;">Send Invite</button>
+            </form>
+          </div>
+
+          <div class="card-body">
+            <div id="interview-list"></div>
+          </div>
+        </div>
       </section>
+
     </div>
-  </div>
+  </main>
+
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const user = await checkSession();
+      if (!user) return;
       const jobId = new URLSearchParams(location.search).get('job_id');
+      if (!jobId) {
+        document.querySelector('.dual-pane').innerHTML = `<div class="empty-state"><p>No Job ID specified.</p></div>`;
+        return;
+      }
+
       const bidForm = document.getElementById('bid-form');
       const interviewForm = document.getElementById('interview-form');
-      if (!jobId) return;
+      const bidBox = document.getElementById('freelancer-bid-box');
+      const actBox = document.getElementById('client-actions-box');
+
       if (user.role === 'freelancer') {
-        const interviews = await apiCall(`project.php?action=interviews/mine&job_id=${jobId}`);
-        document.getElementById('interview-list').innerHTML = `
-          <h2 class="text-2xl font-semibold mb-4">Your Interviews</h2>
-          ${interviews.map((interview) => {
+        bidBox.style.display = 'block';
+        actBox.style.display = 'block';
+        document.getElementById('toggle-interview-btn').style.display = 'none';
+
+        try {
+          const interviews = await apiCall(`project.php?action=interviews/mine&job_id=${jobId}`);
+          document.getElementById('interview-list').innerHTML = `
+            <div style="margin-bottom:1rem; font-weight:700; font-family:'Playfair Display',serif; font-size:1.2rem;">Your Interviews</div>
+            ${interviews.map((interview) => {
             let actions = '';
             if (interview.status === 'pending') {
-              actions = `<div class="mt-3 flex gap-2">
-                  <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'accepted'})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
-                  <button onclick="counterInterview(${interview.id})" class="rounded bg-amber-500 px-3 py-2 text-sm text-white">Counter</button>
-                  <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'canceled'})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Decline</button>
-                </div>`;
+              actions = `<div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'accepted'})" class="btn-primary btn-sm" style="background:var(--success);color:white;">Accept</button>
+                    <button onclick="counterInterview(${interview.id})" class="btn-secondary btn-sm">Counter</button>
+                    <button onclick="actionPost('project.php?action=interviews/respond',{interview_id:${interview.id},status:'canceled'})" class="btn-danger btn-sm">Decline</button>
+                  </div>`;
             } else if (interview.status === 'countered') {
-              actions = `<p class="mt-2 text-sm text-amber-700">You proposed a new time: ${interview.counter_scheduled_at || '—'} (${interview.counter_timezone || 'UTC'}). Waiting for the client to confirm.</p>`;
+              actions = `<p style="margin-top:0.75rem; font-size:0.8rem; color:var(--muted); font-style:italic;">You proposed a new time: ${interview.counter_scheduled_at || '—'} (${interview.counter_timezone || 'UTC'}). Waiting for the client to confirm.</p>`;
             }
             return `
-            <div class="rounded-2xl border p-4 mb-3">
-              <div class="font-semibold">Interview #${interview.id}</div>
-              <div class="text-sm text-slate-500">Offered: ${interview.scheduled_at} ${interview.timezone} | Status: <span class="font-bold">${interview.status}</span></div>
-              ${actions}
-            </div>`;
-          }).join('') || '<p class="text-slate-500">No interviews scheduled.</p>'}
-        `;
+              <div class="card" style="margin-bottom:1rem;">
+                <div class="card-body">
+                  <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div style="font-weight:600; font-size:1.1rem;">Interview #${interview.id}</div>
+                    <span class="badge ${interview.status === 'pending' ? 'badge-warning' : 'badge-gold'}">${interview.status}</span>
+                  </div>
+                  <div style="margin-top:0.75rem; font-size:0.85rem; color:var(--muted);">
+                    Offered time: ${interview.scheduled_at} <br> Timezone: ${interview.timezone}
+                  </div>
+                  ${actions}
+                </div>
+              </div>`;
+          }).join('') || '<div class="empty-state" style="padding:1.5rem;"><p>No interviews scheduled.</p></div>'}
+          `;
+        } catch (e) {
+          document.getElementById('interview-list').innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+        }
+
         bidForm.addEventListener('submit', async (event) => {
           event.preventDefault();
+          const btn = event.target.querySelector('button');
+          btn.textContent = 'Submitting...';
           try {
             const payload = Object.fromEntries(new FormData(event.target).entries());
             payload.job_id = jobId;
             await apiCall('project.php?action=bids/submit', 'POST', payload);
-            alert('Bid submitted');
-            location.reload();
+            showSuccess(document.getElementById('bid-err'), 'Bid submitted');
+            setTimeout(() => location.reload(), 1500);
           } catch (e) {
-            alert(e.message);
+            btn.textContent = 'Submit Proposal';
+            showError(document.getElementById('bid-err'), e.message);
           }
         });
+
       } else {
-        bidForm.classList.add('hidden');
-        const [bids, interviews, contracts] = await Promise.all([
-          apiCall(`client.php?action=bids&job_id=${jobId}`),
-          apiCall(`client.php?action=interviews&job_id=${jobId}`),
-          apiCall('project.php?action=contracts/active')
-        ]);
 
-        const jobContracts = contracts.filter(c => c.job_id == jobId);
+        actBox.style.display = 'block';
 
-        document.getElementById('job-bids').innerHTML = `
-          <h2 class="text-2xl font-semibold mb-4">Bids</h2>
-          ${bids.map((bid) => `
-            <div class="rounded-2xl border p-4 mb-3">
-              <div class="flex items-center justify-between">
-                <div class="font-semibold">${bid.freelancer_name} | $${bid.amount}</div>
-                <div class="badge ${bid.status === 'accepted' ? 'badge-open' : (bid.status === 'rejected' ? 'badge-danger' : 'badge-info')}">${bid.status}</div>
-              </div>
-              <div class="text-sm text-slate-500 mt-1">${bid.proposal_text}</div>
-              ${bid.status === 'pending' ? `
-                <div class="mt-3 flex gap-2">
-                  <button onclick="acceptBidWithOptions(${bid.id})" class="rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept</button>
-                  <button onclick="actionPost('client.php?action=bids/reject',{bid_id:${bid.id}})" class="rounded bg-rose-600 px-3 py-2 text-sm text-white">Reject</button>
+        document.getElementById('toggle-interview-btn').addEventListener('click', () => {
+          document.getElementById('interview-form-wrapper').classList.toggle('show');
+        });
+
+        try {
+          const [bids, interviews, contracts] = await Promise.all([
+            apiCall(`client.php?action=bids&job_id=${jobId}`),
+            apiCall(`client.php?action=interviews&job_id=${jobId}`),
+            apiCall('project.php?action=contracts/active')
+          ]);
+
+          const jobContracts = contracts.filter(c => c.job_id == jobId);
+
+          document.getElementById('job-bids').innerHTML = `
+            <h2 class="section-title">Submitted Bids</h2>
+            ${bids.map((bid) => `
+              <div class="card ${bid.status === 'accepted' ? 'card-awarded' : ''}" style="margin-bottom:1rem;">
+                <div class="card-body">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                    <div style="font-weight:700; font-family:'Playfair Display',serif; font-size:1.2rem;">${bid.freelancer_name}</div>
+                    <div class="badge ${bid.status === 'accepted' ? 'badge-open' : (bid.status === 'rejected' ? 'badge-danger' : 'badge-info')}">${bid.status}</div>
+                  </div>
+                  <div style="font-weight:600; color:var(--ink); font-size:1.1rem; margin-bottom:1rem;">$${parseFloat(bid.amount).toLocaleString()}</div>
+                  <div style="font-size:0.9rem; color:var(--muted); line-height:1.6;">${bid.proposal_text}</div>
+                  
+                  ${bid.status === 'pending' ? `
+                    <div style="margin-top:1.5rem; display:flex; gap:0.5rem;">
+                      <button onclick="acceptBidWithOptions(${bid.id})" class="btn-primary btn-sm">Award Contract</button>
+                      <button onclick="actionPost('client.php?action=bids/reject',{bid_id:${bid.id}})" class="btn-secondary btn-sm" style="color:var(--danger); border-color:transparent;">Reject</button>
+                    </div>
+                  ` : ''}
                 </div>
-              ` : ''}
-            </div>
-          `).join('') || '<p class="text-slate-500">No bids yet.</p>'}
-          
-          <h2 class="text-2xl font-semibold mt-8 mb-4">Active Contracts</h2>
-          ${jobContracts.map(c => `
-            <div class="rounded-2xl border p-4 mb-3">
-              <div class="flex items-center justify-between">
-                <div class="font-semibold">Contract #${c.id}</div>
-                <div class="badge badge-warning">${c.status}</div>
               </div>
-              <div class="mt-3 flex gap-2">
-                <a href="contract.html?contract_id=${c.id}" class="rounded bg-slate-800 px-3 py-2 text-sm text-white">Manage</a>
-                ${c.status === 'pending_nda' ? `<button onclick="actionPost('client.php?action=contracts/nda/sign',{job_id:${c.job_id}})" class="rounded bg-indigo-600 px-3 py-2 text-sm text-white">Sign NDA</button>` : ''}
-              </div>
-            </div>
-          `).join('') || '<p class="text-slate-500">No contracts created yet.</p>'}
+            `).join('') || '<div class="empty-state"><p>No proposals submitted yet.</p></div>'}
 
-          <h2 class="text-2xl font-semibold mt-8 mb-4">Scheduled Interviews</h2>
-          ${interviews.map(i => `
-            <div class="rounded-2xl border p-4 mb-3">
-              <div class="font-semibold">Freelancer ID: ${i.freelancer_id}</div>
-              <div class="text-sm text-slate-500">Current slot: ${i.scheduled_at} ${i.timezone} | <span class="font-bold">${i.status}</span></div>
-              ${i.status === 'countered' && i.counter_scheduled_at ? `
-                <div class="mt-2 text-sm text-amber-800">Freelancer proposed: ${i.counter_scheduled_at} (${i.counter_timezone || 'UTC'})</div>
-                <button onclick="actionPost('client.php?action=interviews/accept-counter',{interview_id:${i.id}})" class="mt-2 rounded bg-emerald-600 px-3 py-2 text-sm text-white">Accept freelancer time</button>
-              ` : ''}
-            </div>
-          `).join('') || '<p class="text-slate-500">No interviews scheduled yet.</p>'}
-        `;
+            <h2 class="section-title" style="margin-top: 3rem;">Active Contracts</h2>
+            ${jobContracts.map(c => `
+              <div class="card" style="margin-bottom:1rem;">
+                <div class="card-body" style="display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                    <div style="font-weight:600; font-size:1.1rem; margin-bottom:0.25rem;">Contract #${c.id}</div>
+                    <span class="badge badge-warning">${c.status}</span>
+                  </div>
+                  <div style="display:flex; gap:0.5rem;">
+                    ${c.status === 'pending_nda' ? `<button onclick="actionPost('client.php?action=contracts/nda/sign',{job_id:${c.job_id}})" class="btn-primary btn-sm" style="background:var(--gold);color:var(--ink);">Sign NDA</button>` : ''}
+                    <a href="contract.html?contract_id=${c.id}" class="btn-secondary btn-sm">Manage</a>
+                  </div>
+                </div>
+              </div>
+            `).join('') || '<div class="empty-state"><p>No contracts finalized.</p></div>'}
+          `;
+
+          document.getElementById('interview-list').innerHTML = `
+            <div style="margin-bottom:1rem; font-weight:700; font-family:'Playfair Display',serif; font-size:1.2rem;">Scheduled Interviews</div>
+            ${interviews.map(i => `
+              <div class="card" style="margin-bottom:1rem; background: rgba(255,255,255,0.4);">
+                <div class="card-body">
+                  <div style="font-weight:600; font-size:0.9rem;">Freelancer ID: ${i.freelancer_id}</div>
+                  <div style="margin-top:0.4rem; font-size:0.8rem; color:var(--muted);">Slot: ${i.scheduled_at} ${i.timezone} | <span style="font-weight:600;color:var(--ink);">${i.status}</span></div>
+                  ${i.status === 'countered' && i.counter_scheduled_at ? `
+                    <div style="margin-top:0.75rem; padding:0.75rem; background:var(--gold-light); border-radius:4px; font-size:0.8rem; color:var(--ink);">
+                      Freelancer proposed: ${i.counter_scheduled_at} (${i.counter_timezone || 'UTC'})
+                    </div>
+                    <button onclick="actionPost('client.php?action=interviews/accept-counter',{interview_id:${i.id}})" class="btn-primary btn-sm" style="margin-top:0.75rem;">Accept new time</button>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('') || '<div class="empty-state" style="padding:1.5rem;"><p>No interviews scheduled.</p></div>'}
+          `;
+        } catch (e) { }
 
         interviewForm.addEventListener('submit', async (event) => {
           event.preventDefault();
+          const btn = event.target.querySelector('button');
+          btn.textContent = 'Scheduling...';
           try {
             const payload = Object.fromEntries(new FormData(event.target).entries());
             payload.job_id = jobId;
             await apiCall('client.php?action=interviews/schedule', 'POST', payload);
-            alert('Interview scheduled');
-            location.reload();
+            showSuccess(document.getElementById('int-err'), 'Interview scheduled');
+            setTimeout(() => location.reload(), 1500);
           } catch (e) {
-            alert(e.message);
+            btn.textContent = 'Send Invite';
+            showError(document.getElementById('int-err'), e.message);
           }
         });
       }
     });
+
     async function actionPost(endpoint, body) {
+      document.body.style.opacity = '0.5';
       try {
         await apiCall(endpoint, 'POST', body);
         location.reload();
       } catch (e) {
+        document.body.style.opacity = '1';
         alert(e.message);
       }
     }
+
     async function acceptBidWithOptions(bidId) {
       const pctRaw = window.prompt('Partial escrow release on deliverable submit (0–100; 0 = none)', '0');
       if (pctRaw === null) return;
       const partial_release_pct = Math.max(0, Math.min(100, parseInt(pctRaw, 10) || 0));
+      document.body.style.opacity = '0.5';
       try {
         await apiCall('client.php?action=bids/accept', 'POST', { bid_id: bidId, partial_release_pct });
         location.reload();
       } catch (e) {
+        document.body.style.opacity = '1';
         alert(e.message);
       }
     }
@@ -172,12 +320,15 @@
         const scheduledAt = prompt('Enter alternative datetime in format YYYY-MM-DD HH:MM:SS');
         if (!scheduledAt) return;
         const timezone = prompt('Enter timezone', 'UTC') || 'UTC';
+        document.body.style.opacity = '0.5';
         await apiCall('project.php?action=interviews/respond', 'POST', { interview_id: interviewId, status: 'countered', scheduled_at: scheduledAt, timezone });
         location.reload();
       } catch (e) {
+        document.body.style.opacity = '1';
         alert(e.message);
       }
     }
   </script>
 </body>
+
 </html>
