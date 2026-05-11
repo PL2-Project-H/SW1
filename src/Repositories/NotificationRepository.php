@@ -9,7 +9,7 @@ class NotificationRepository extends BaseRepository
 
     public function unreadForUser(int $userId): array
     {
-        return $this->fetchAllRows('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30', [$userId]);
+        return $this->fetchAllRows('SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT 30', [$userId]);
     }
 
     public function markAllAsRead(int $userId): void

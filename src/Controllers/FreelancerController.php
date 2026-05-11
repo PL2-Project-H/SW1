@@ -106,6 +106,7 @@ class FreelancerController extends BaseController
         if (!$profile) {
             Response::error('Profile not found', 404);
         }
+        unset($profile['email'], $profile['credentials'], $profile['kyc_submissions'], $profile['availability']);
         $profile['portfolio'] = array_map(function ($item) {
             $metadata = $item['metadata_json'] ? json_decode($item['metadata_json'], true) : [];
             $outcome = $metadata['project_outcome']

@@ -111,6 +111,7 @@ class ProjectController extends BaseController
     public function submitChecklist(array $data): void
     {
         $freelancerId = $this->requireAuth('freelancer');
+        $this->requireMilestoneParticipant($freelancerId, (int) $data['milestone_id']);
         $this->milestones->submitQaChecklist((int) $data['milestone_id'], $freelancerId, $data['checklist'] ?? []);
         Response::json(['message' => 'QA checklist submitted']);
     }
@@ -246,8 +247,9 @@ class ProjectController extends BaseController
 
     public function listSnapshots(): void
     {
-        $this->requireAuth();
-        $milestone = (new MilestoneRepository())->getMilestone((int) $_GET['milestone_id']);
+        $userId = $this->requireAuth();
+        $milestoneId = (int) ($_GET['milestone_id'] ?? 0);
+        $milestone = $this->requireMilestoneParticipant($userId, $milestoneId);
         Response::json($milestone['snapshots'] ?? []);
     }
 
@@ -255,6 +257,7 @@ class ProjectController extends BaseController
     {
         $userId = $this->requireAuth('freelancer');
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
+        $this->requireMilestoneParticipant($userId, $milestoneId);
         $path = $this->uploadFile('snapshots', $userId, ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip']);
         $this->milestones->snapshot($milestoneId, $path);
         Response::json(['file_path' => $path]);
@@ -263,16 +266,24 @@ class ProjectController extends BaseController
     public function amend(array $data): void
     {
         $userId = $this->requireAuth();
+        $contractId = $this->intField($data, 'contract_id', 1);
+        $this->requireContractParticipant($userId, $contractId);
         $desc = $this->stringField($data, 'change_description', 4000);
-        $id = (new ContractService())->proposeAmendment($this->intField($data, 'contract_id', 1), $userId, $desc);
+        $id = (new ContractService())->proposeAmendment($contractId, $userId, $desc);
         Response::json(['id' => $id]);
     }
 
     public function respondAmendment(array $data): void
     {
         $userId = $this->requireAuth();
+        $amendmentId = $this->intField($data, 'amendment_id', 1);
+        $amendment = (new ContractRepository())->getAmendment($amendmentId);
+        if (!$amendment) {
+            Response::error('Amendment not found', 404);
+        }
+        $this->requireContractParticipant($userId, (int) $amendment['contract_id']);
         $response = $this->stringField($data, 'response', 40);
-        (new ContractService())->respondToAmendment($this->intField($data, 'amendment_id', 1), $userId, $response);
+        (new ContractService())->respondToAmendment($amendmentId, $userId, $response);
         Response::json(['message' => 'Amendment updated']);
     }
 
