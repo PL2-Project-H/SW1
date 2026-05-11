@@ -17,8 +17,16 @@ class DisputeController extends BaseController
     public function file(array $data): void
     {
         $userId = $this->requireAuth();
+        $contractId = $this->intField($data, 'contract_id', 1);
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+        if ($userId !== (int) $contract['client_id'] && $userId !== (int) $contract['freelancer_id']) {
+            Response::error('Forbidden', 403);
+        }
         $id = $this->disputes->create([
-            'contract_id' => $this->intField($data, 'contract_id', 1),
+            'contract_id' => $contractId,
             'filed_by'    => $userId,
             'reason'      => $this->stringField($data, 'reason', 2000),
         ]);

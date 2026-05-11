@@ -18,6 +18,28 @@ class ProjectController extends BaseController
         $this->milestones = new MilestoneService();
     }
 
+    private function requireContractParticipant(int $userId, int $contractId): array
+    {
+        $contract = $this->contracts->getContract($contractId);
+        if (!$contract) {
+            Response::error('Contract not found', 404);
+        }
+        if ($userId !== (int) $contract['client_id'] && $userId !== (int) $contract['freelancer_id']) {
+            Response::error('Forbidden', 403);
+        }
+        return $contract;
+    }
+
+    private function requireMilestoneParticipant(int $userId, int $milestoneId): array
+    {
+        $milestone = (new MilestoneRepository())->getMilestone($milestoneId);
+        if (!$milestone) {
+            Response::error('Milestone not found', 404);
+        }
+        $this->requireContractParticipant($userId, (int) $milestone['contract_id']);
+        return $milestone;
+    }
+
     public function submitBid(array $data): void
     {
         $freelancerId = $this->requireAuth('freelancer');
@@ -66,21 +88,24 @@ class ProjectController extends BaseController
 
     public function buildMilestones(array $data): void
     {
-        $this->requireAuth();
+        $userId = $this->requireAuth();
+        $this->requireContractParticipant($userId, (int) $data['contract_id']);
         Response::json(['ids' => $this->milestones->buildMilestones((int) $data['contract_id'], $data['milestones'] ?? [])]);
     }
 
     public function startMilestone(array $data): void
     {
-        $this->requireAuth();
+        $userId = $this->requireAuth();
+        $this->requireMilestoneParticipant($userId, (int) $data['milestone_id']);
         $this->milestones->startMilestone((int) $data['milestone_id']);
         Response::json(['message' => 'Milestone started']);
     }
 
     public function milestoneDetail(int $milestoneId): void
     {
-        $this->requireAuth();
-        Response::json((new MilestoneRepository())->getMilestone($milestoneId));
+        $userId = $this->requireAuth();
+        $milestone = $this->requireMilestoneParticipant($userId, $milestoneId);
+        Response::json($milestone);
     }
 
     public function submitChecklist(array $data): void
@@ -105,6 +130,7 @@ class ProjectController extends BaseController
     {
         $userId = $this->requireAuth('freelancer');
         $milestoneId = (int) ($_POST['milestone_id'] ?? 0);
+        $this->requireMilestoneParticipant($userId, $milestoneId);
         $path = $this->uploadFile('deliverables', $userId, ['pdf', 'jpg', 'jpeg', 'png', 'ipynb', 'docx', 'zip', 'txt']);
         $id = $this->milestones->handleDeliverable($milestoneId, $path);
         Response::json(['id' => $id, 'file_path' => $path]);
@@ -112,21 +138,24 @@ class ProjectController extends BaseController
 
     public function requestRevision(array $data): void
     {
-        $this->requireAuth('client');
+        $userId = $this->requireAuth('client');
+        $this->requireMilestoneParticipant($userId, (int) $data['milestone_id']);
         $result = $this->milestones->requestRevision((int) $data['milestone_id']);
         Response::json(array_merge(['message' => 'Revision requested'], $result));
     }
 
     public function approveMilestone(array $data): void
     {
-        $this->requireAuth('client');
+        $userId = $this->requireAuth('client');
+        $this->requireMilestoneParticipant($userId, (int) $data['milestone_id']);
         $this->milestones->approve((int) $data['milestone_id']);
         Response::json(['message' => 'Milestone approved']);
     }
 
     public function confirmMilestone(array $data): void
     {
-        $this->requireAuth('freelancer');
+        $userId = $this->requireAuth('freelancer');
+        $this->requireMilestoneParticipant($userId, (int) $data['milestone_id']);
         $this->milestones->confirmCompletion((int) $data['milestone_id']);
         Response::json(['message' => 'Milestone marked complete']);
     }

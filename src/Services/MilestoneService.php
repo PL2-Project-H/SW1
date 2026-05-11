@@ -268,6 +268,21 @@ class MilestoneService
         );
 
         $this->audit->log((int) ($_SESSION['user_id'] ?? 0), 'milestone_completed', 'milestone', $milestoneId, ['status' => 'approved'], ['status' => 'complete']);
+
+        $allMilestones = $this->milestones->listByContract((int) $milestone['contract_id']);
+        $allComplete = true;
+        foreach ($allMilestones as $m) {
+            if (!in_array($m['status'], ['complete', 'approved', 'auto_approved'], true)) {
+                $allComplete = false;
+                break;
+            }
+        }
+        if ($allComplete && count($allMilestones) > 0) {
+            $this->contracts->updateContractStatus((int) $milestone['contract_id'], 'completed');
+            $this->notifications->send((int) $contract['client_id'], 'contract_completed', 'Contract has been completed.');
+            $this->notifications->send($freelancerId, 'contract_completed', 'Contract has been completed.');
+            $this->audit->log((int) ($_SESSION['user_id'] ?? 0), 'contract_completed', 'contract', (int) $milestone['contract_id'], ['status' => 'active'], ['status' => 'completed']);
+        }
     }
 
     public function snapshot(int $milestoneId, string $filePath): void
