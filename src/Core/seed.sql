@@ -159,7 +159,7 @@ INSERT INTO disputes (id, contract_id, filed_by, reason, status, assigned_admin)
 (7, 7, 15, 'Disagreement on laws.', 'open', 1), (8, 8, 20, 'API performance.', 'open', 1), (9, 10, 17, 'Bot is buggy.', 'in_mediation', 16), (10, 12, 26, 'Wrong market model.', 'resolved', 1);
 
 INSERT INTO dispute_messages (id, dispute_id, sender_id, message) VALUES
-(1, 1, 2, 'I haven\'t heard from Elena in 3 days.'), (2, 1, 4, 'I am here, just busy.'), (3, 2, 10, 'They want 5 more pages.'), (4, 2, 8, 'The contract was vague.'), (5, 4, 5, 'Milestone was approved but not paid.'), (6, 5, 9, 'They missed the May 1 deadline.');
+(1, 1, 2, 'I haven"t heard from Elena in 3 days.'), (2, 1, 4, 'I am here, just busy.'), (3, 2, 10, 'They want 5 more pages.'), (4, 2, 8, 'The contract was vague.'), (5, 4, 5, 'Milestone was approved but not paid.'), (6, 5, 9, 'They missed the May 1 deadline.');
 
 -- 7. Audit Logs (100+ Entries)
 INSERT INTO audit_logs (user_id, action, entity_type, entity_id, ip_address) VALUES
