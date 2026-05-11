@@ -45,3 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 date_default_timezone_set('UTC');
+
+set_exception_handler(function (Throwable $e): void {
+    error_log('[SpecialistHub] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    error_log($e->getTraceAsString());
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+    }
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+});
+
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    error_log("[SpecialistHub] $message in $file:$line");
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
